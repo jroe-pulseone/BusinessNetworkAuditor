@@ -56,14 +56,11 @@ function Import-AuditData {
             if ($JsonContent.Length -gt 0 -and $JsonContent[0] -eq [char]0xFEFF) {
                 $JsonContent = $JsonContent.Substring(1)
             }
-            # Parse as hashtable to handle empty string category names, then convert to PSObject
-            $AuditDataHash = $JsonContent | ConvertFrom-Json -AsHashtable
-            # Remove empty category name if it exists (audit tool bug)
-            if ($AuditDataHash.ContainsKey('categories') -and $AuditDataHash['categories'].ContainsKey('')) {
-                $AuditDataHash['categories'].Remove('')
-            }
-            # Convert back to JSON and parse as PSObject for consistent property access
-            $AuditData = ($AuditDataHash | ConvertTo-Json -Depth 20) | ConvertFrom-Json
+            # Remove empty string category (audit tool bug) using multiline regex
+            $JsonContent = $JsonContent -replace '(?s)"":\s*\{.*?"findings":\s*\[.*?\]\s*\},?\s*', ''
+            # Clean up trailing commas before closing braces
+            $JsonContent = $JsonContent -replace ',(\s*[\]}])', '$1'
+            $AuditData = $JsonContent | ConvertFrom-Json
             
             # Determine file type and validate structure
             $IsDarkWebFile = $JsonFile.Name -like "darkweb-check-*"
