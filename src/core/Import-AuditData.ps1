@@ -212,9 +212,11 @@ function Import-AuditData {
 
                         if ($CategoryData.findings) {
                             foreach ($Finding in $CategoryData.findings) {
-                                # Skip findings with null or empty item_name
-                                if (-not $Finding.item_name -or [string]::IsNullOrWhiteSpace($Finding.item_name)) {
-                                    Write-Verbose "Skipping finding with null/empty item_name in $($JsonFile.Name)"
+                                # Skip findings with all null fields (corrupted data)
+                                if ($null -eq $Finding.item_name -or
+                                    [string]::IsNullOrWhiteSpace($Finding.item_name) -or
+                                    ($null -eq $Finding.category -and $null -eq $Finding.details)) {
+                                    Write-Verbose "Skipping finding with null/empty data in $($JsonFile.Name)"
                                     continue
                                 }
 
