@@ -40,44 +40,7 @@ function Get-ProcessAnalysis {
                 Recommendation = ""
             }
             
-            # Check for high CPU usage processes - header + detail format
-            $HighCPUProcesses = $Processes | Where-Object { $_.CPU -gt 60 } | Select-Object -First 5
-            if ($HighCPUProcesses.Count -gt 0) {
-                $HighestCPU = $HighCPUProcesses | Sort-Object CPU -Descending | Select-Object -First 1
-                $TopCPU = [math]::Round($HighestCPU.CPU, 2)
-                $CPURisk = if ($TopCPU -gt 300) { "HIGH" } elseif ($TopCPU -gt 120) { "MEDIUM" } else { "LOW" }
-                
-                # Header entry with compliance message
-                $Results += [PSCustomObject]@{
-                    Category = "Processes"
-                    Item = "High CPU Processes"
-                    Value = "$($HighCPUProcesses.Count) processes detected"
-                    Details = "Processes using significant CPU time may impact system performance"
-                    RiskLevel = $CPURisk
-                    Recommendation = if ($TopCPU -gt 180) { "Investigate high CPU usage processes for performance impact" } else { "" }
-                }
-                
-                # Individual detail entries without compliance duplication
-                foreach ($Process in $HighCPUProcesses) {
-                    $ProcessName = $Process.ProcessName
-                    $CPU = [math]::Round($Process.CPU, 2)
-                    $Memory = [math]::Round($Process.WorkingSet64 / 1MB, 2)
-                    $ProcessId = $Process.Id
-                    
-                    $Results += [PSCustomObject]@{
-                        Category = "Processes"
-                        Item = "High CPU Process"
-                        Value = "$ProcessName (PID: $ProcessId)"
-                        Details = "CPU: $CPU seconds, Memory: $Memory MB"
-                        RiskLevel = "INFO"
-                        Recommendation = ""
-                    }
-                    
-                    Write-LogMessage "INFO" "High CPU process: $ProcessName - CPU: $CPU seconds, Memory: $Memory MB" "PROCESS"
-                }
-            }
-            
-            Write-LogMessage "INFO" "Process analysis: $ProcessCount total, $($HighCPUProcesses.Count) high CPU" "PROCESS"
+            Write-LogMessage "INFO" "Process analysis: $ProcessCount total processes" "PROCESS"
         }
         catch {
             Write-LogMessage "WARN" "Could not retrieve process information: $($_.Exception.Message)" "PROCESS"
@@ -253,31 +216,25 @@ function Get-ProcessAnalysis {
             Write-LogMessage "WARN" "Could not retrieve startup program information: $($_.Exception.Message)" "PROCESS"
         }
         
-        # Check system performance and resource usage
+        # System hardware information (factual, not performance snapshot)
         try {
-            $OS = Get-CimInstance -ClassName Win32_OperatingSystem
             $ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
-            
             $TotalMemoryGB = [math]::Round($ComputerSystem.TotalPhysicalMemory / 1GB, 2)
-            $FreeMemoryGB = [math]::Round($OS.FreePhysicalMemory / 1KB / 1MB, 2)
-            $MemoryUsagePercent = [math]::Round((($TotalMemoryGB - $FreeMemoryGB) / $TotalMemoryGB) * 100, 1)
-            
-            $ProcessorCount = (Get-CimInstance -ClassName Win32_ComputerSystem).NumberOfLogicalProcessors
-            $ProcessorUsage = Get-CimInstance -ClassName Win32_PerfRawData_PerfOS_Processor | Where-Object { $_.Name -eq "_Total" }
-            
+            $ProcessorCount = $ComputerSystem.NumberOfLogicalProcessors
+
             $Results += [PSCustomObject]@{
                 Category = "Performance"
-                Item = "System Resource Usage"
-                Value = "Memory: $MemoryUsagePercent% used"
+                Item = "System Hardware"
+                Value = "$TotalMemoryGB GB RAM"
                 Details = "Total RAM: $TotalMemoryGB GB, Processors: $ProcessorCount, Active processes: $ProcessCount"
-                RiskLevel = if ($MemoryUsagePercent -gt 85) { "HIGH" } elseif ($MemoryUsagePercent -gt 75) { "MEDIUM" } else { "LOW" }
-                Recommendation = if ($MemoryUsagePercent -gt 80) { "High memory usage may impact system performance" } else { "" }
+                RiskLevel = "INFO"
+                Recommendation = ""
             }
-            
-            Write-LogMessage "INFO" "System resources: $MemoryUsagePercent% memory used, $ProcessorCount processors" "PROCESS"
+
+            Write-LogMessage "INFO" "System hardware: $TotalMemoryGB GB RAM, $ProcessorCount processors" "PROCESS"
         }
         catch {
-            Write-LogMessage "WARN" "Could not retrieve system performance information: $($_.Exception.Message)" "PROCESS"
+            Write-LogMessage "WARN" "Could not retrieve system hardware information: $($_.Exception.Message)" "PROCESS"
         }
         
         Write-LogMessage "SUCCESS" "Process analysis completed - $($Results.Count) items analyzed" "PROCESS"
