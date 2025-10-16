@@ -45,36 +45,6 @@ function Get-SoftwareInventory {
             Recommendation = ""
         }
 
-        # Check for critical software and versions
-        $CriticalSoftware = @(
-            @{Name="Google Chrome"; Pattern="Chrome"}
-            @{Name="Mozilla Firefox"; Pattern="Firefox"}
-            @{Name="Adobe Acrobat"; Pattern="Adobe.*Acrobat"}
-            @{Name="Microsoft Office"; Pattern="Microsoft Office"}
-            @{Name="Java"; Pattern="Java"}
-        )
-
-        foreach ($Critical in $CriticalSoftware) {
-            $Found = $AllSoftware | Where-Object { $_.DisplayName -match $Critical.Pattern } | Select-Object -First 1
-            if ($Found) {
-                $InstallDate = if ($Found.InstallDate) {
-                    try { [datetime]::ParseExact($Found.InstallDate, "yyyyMMdd", $null) } catch { $null }
-                } else { $null }
-
-                $AgeInDays = if ($InstallDate) { (New-TimeSpan -Start $InstallDate -End (Get-Date)).Days } else { $null }
-
-                $RiskLevel = if ($AgeInDays -gt 365) { "HIGH" } elseif ($AgeInDays -gt 180) { "MEDIUM" } else { "LOW" }
-
-                $Results += [PSCustomObject]@{
-                    Category = "Software"
-                    Item = $Critical.Name
-                    Value = $Found.DisplayVersion
-                    Details = "Install Date: $(if ($InstallDate) { $InstallDate.ToString('yyyy-MM-dd') } else { 'Unknown' }), Age: $(if ($AgeInDays) { "$AgeInDays days" } else { 'Unknown' })"
-                    RiskLevel = $RiskLevel
-                    Recommendation = if ($AgeInDays -gt 365) { "Regular software updates required" } else { "" }
-                }
-            }
-        }
 
         # Remote access software detection - simple prefix matching
         $RemoteAccessPrefixes = @(
