@@ -27,11 +27,20 @@ function Generate-ExecutiveSummary {
     
     Write-Verbose "Generating executive summary for $($ImportedData.SystemCount) systems"
     
+    # Environment Overview Analysis (separate computers from dark web checks)
+    $WorkstationCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Workstation*" }).Count
+    $ServerCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Server*" }).Count
+    $DarkWebChecks = ($ImportedData.Systems | Where-Object { $_.SystemType -eq "Breach Monitor" }).Count
+    $DomainControllers = ($ImportedData.AllFindings | Where-Object { $_.Category -eq "System" -and $_.Item -eq "Server Roles" -and $_.Value -like "*Domain Controller*" }).Count
+
+    # Systems assessed = computers only (exclude dark web checks)
+    $ComputerCount = $WorkstationCount + $ServerCount
+
     # Initialize summary object
     $Summary = [PSCustomObject]@{
         ClientName = $ClientName
         AssessmentDate = (Get-Date).ToString("MMMM yyyy")
-        SystemsAssessed = $ImportedData.SystemCount
+        SystemsAssessed = $ComputerCount
         TotalFindings = $ImportedData.FindingCount
         RiskDistribution = $ImportedData.RiskSummary
         KeyFindings = @()
@@ -41,20 +50,14 @@ function Generate-ExecutiveSummary {
         SecurityStrengths = @()
         PositiveFindings = @{}
     }
-    
-    # Environment Overview Analysis
-    $WorkstationCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Workstation*" -or $_.SystemType -eq "Unknown" }).Count
-    $ServerCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Server*" }).Count
-    $DarkWebChecks = ($ImportedData.Systems | Where-Object { $_.SystemType -eq "Breach Monitor" }).Count
-    $DomainControllers = ($ImportedData.AllFindings | Where-Object { $_.Category -eq "System" -and $_.Item -eq "Server Roles" -and $_.Value -like "*Domain Controller*" }).Count
-    
+
     $Summary.EnvironmentOverview = @{
         TotalSystems = $ImportedData.SystemCount
         Workstations = $WorkstationCount
         Servers = $ServerCount
         DarkWebChecks = $DarkWebChecks
         DomainControllers = $DomainControllers
-        AssessmentScope = "$($ImportedData.SystemCount) systems assessed"
+        AssessmentScope = "$ComputerCount computers ($WorkstationCount workstations, $ServerCount servers)" + $(if ($DarkWebChecks -gt 0) { " + $DarkWebChecks dark web check(s)" } else { "" })
     }
     
     # Key Findings Analysis (HIGH and MEDIUM risk items)
