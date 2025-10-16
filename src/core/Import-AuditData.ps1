@@ -69,11 +69,13 @@ function Import-AuditData {
                     continue
                 }
             } else {
-                # Validate system audit file structure - support both old and new formats
+                # Validate system audit file structure - support all formats
+                # Old format: compliance_framework.findings (pre-Sept 12)
+                # Current format: categories + recommendation_framework (Sept 12+)
                 $HasOldFormat = $AuditData.metadata -and $AuditData.compliance_framework.findings
-                $HasNewFormat = $AuditData.metadata -and $AuditData.categories
+                $HasCurrentFormat = $AuditData.metadata -and $AuditData.categories
 
-                if (-not $HasOldFormat -and -not $HasNewFormat) {
+                if (-not $HasOldFormat -and -not $HasCurrentFormat) {
                     Write-Warning "Invalid audit file format: $($JsonFile.Name) - Missing metadata or findings structure"
                     $Result.Errors += "Invalid format: $($JsonFile.Name)"
                     continue
@@ -101,17 +103,27 @@ function Import-AuditData {
                     $TotalFindings = $AuditData.compliance_framework.findings.Count
                 } elseif ($AuditData.categories) {
                     # Count findings across all categories
-                    $AuditData.categories.PSObject.Properties | ForEach-Object {
-                        if ($_.Value.findings) {
-                            $TotalFindings += $_.Value.findings.Count
+                    try {
+                        $AuditData.categories.PSObject.Properties | ForEach-Object {
+                            if ($_.Value -and $_.Value.findings -and $_.Value.findings.Count) {
+                                $TotalFindings += $_.Value.findings.Count
+                            }
                         }
+                    } catch {
+                        Write-Verbose "Error counting findings: $($_.Exception.Message)"
+                        $TotalFindings = 0
                     }
                 }
 
+                # Safely convert metadata values to strings
+                $ComputerName = if ($AuditData.metadata.computer_name) { $AuditData.metadata.computer_name.ToString() } else { "Unknown" }
+                $AuditTimestamp = if ($AuditData.metadata.audit_timestamp) { $AuditData.metadata.audit_timestamp.ToString() } else { "Unknown" }
+                $ToolVersion = if ($AuditData.metadata.tool_version) { $AuditData.metadata.tool_version.ToString() } else { "Unknown" }
+
                 $SystemInfo = [PSCustomObject]@{
-                    ComputerName = $AuditData.metadata.computer_name
-                    AuditTimestamp = $AuditData.metadata.audit_timestamp
-                    ToolVersion = $AuditData.metadata.tool_version
+                    ComputerName = $ComputerName
+                    AuditTimestamp = $AuditTimestamp
+                    ToolVersion = $ToolVersion
                     FileName = $JsonFile.Name
                     FileSize = [math]::Round($JsonFile.Length / 1KB, 1)
                     FindingCount = $TotalFindings
