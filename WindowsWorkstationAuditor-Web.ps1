@@ -3,7 +3,7 @@
 # Platform: Windows 10/11
 # Requires: PowerShell 5.0+
 # Usage: [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm https://your-url/WindowsWorkstationAuditor-Web.ps1)
-# Built: 2025-10-16 21:00:20
+# Built: 2025-10-17 10:40:51
 # Modules: 27 embedded modules in dependency order
 
 param(
@@ -14,107 +14,200 @@ param(
 # Embedded Configuration
 $Script:EmbeddedConfig = @'
 {
-    "version": "1.3.0",
-    "modules": {
-        "system": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "System information and workstation details"
-        },
-        "users": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "User accounts and local administrators"
-        },
-        "software": {
-            "enabled": true,
-            "timeout": 45,
-            "description": "Installed software inventory"
-        },
-        "security": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "Security settings and antivirus detection"
-        },
-        "patches": {
-            "enabled": true,
-            "timeout": 60,
-            "description": "Windows Update and patch status"
-        },
-        "policy": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Group policies and configuration"
-        },
-        "disk": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "Disk space and storage analysis"
-        },
-        "memory": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "Memory usage and configuration"
-        },
-        "printer": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "Installed printers and print spooler"
-        },
-        "network": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Network configuration and security"
-        },
-        "process": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Running processes and services"
-        },
-        "eventlog": {
-            "enabled": true,
-            "timeout": 45,
-            "description": "Event log analysis for security events"
-        }
+  "version": "1.3.0",
+  "modules": {
+    "system": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "System information and workstation details"
     },
-    "output": {
-        "formats": ["markdown", "rawjson"],
-        "path": "./output",
-        "timestamp": true,
-        "filename_prefix": "workstation_audit"
+    "users": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "User accounts and local administrators"
     },
-    "settings": {
-        "collect_browser_data": false,
-        "collect_startup_programs": true,
-        "collect_user_folders": false,
-        "max_processes": 200,
-        "max_services": 300,
-        "eventlog": {
-            "analysis_days": 7,
-            "max_events_per_query": 1000,
-            "server_analysis_days": 3,
-            "server_max_events": 500
-        },
-        "antivirus_signatures": {
-            "SentinelOne": ["SentinelAgent", "SentinelRemediation", "SentinelCtl"],
-            "CrowdStrike": ["CSAgent", "CSFalconService", "CSFalconContainer"],
-            "CarbonBlack": ["cb", "CarbonBlack", "RepMgr", "RepUtils", "RepUx"],
-            "Cortex XDR": ["cytool", "cyserver", "CyveraService"],
-            "McAfee": ["mcshield", "mfemms", "mfevtps", "McCSPServiceHost", "masvc"],
-            "Symantec": ["ccSvcHst", "NortonSecurity", "navapsvc", "rtvscan", "savroam"],
-            "Trend Micro": ["tmbmsrv", "tmproxy", "tmlisten", "PccNTMon", "TmListen"],
-            "Kaspersky": ["avp", "avpui", "klnagent", "ksde", "kavfs"],
-            "Bitdefender": ["bdagent", "vsservppl", "vsserv", "updatesrv", "bdredline"],
-            "ESET": ["epag", "epwd", "ekrn", "egui", "efsw"],
-            "Sophos": ["SophosAgent", "savservice", "SophosFS", "SophosHealth"],
-            "F-Secure": ["fsm32", "fsgk32", "fsav32", "fshoster", "FSMA"],
-            "Avast": ["avastui", "avastsvc", "avastbrowser", "wsc_proxy"],
-            "AVG": ["avguard", "avgui", "avgrsa", "avgfws", "avgcsrvx"],
-            "Webroot": ["WRSA", "WRData", "WRCore", "WRConsumerService"],
-            "Malwarebytes": ["mbamservice", "mbamtray", "MBAMProtector", "mbae64"],
-            "Windows Defender": ["MsMpEng", "NisSrv", "SecurityHealthService"]
-        }
+    "software": {
+      "enabled": true,
+      "timeout": 45,
+      "description": "Installed software inventory"
+    },
+    "security": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "Security settings and antivirus detection"
+    },
+    "patches": {
+      "enabled": true,
+      "timeout": 60,
+      "description": "Windows Update and patch status"
+    },
+    "policy": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Group policies and configuration"
+    },
+    "disk": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "Disk space and storage analysis"
+    },
+    "memory": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "Memory usage and configuration"
+    },
+    "printer": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "Installed printers and print spooler"
+    },
+    "network": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Network configuration and security"
+    },
+    "process": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Running processes and services"
+    },
+    "eventlog": {
+      "enabled": true,
+      "timeout": 45,
+      "description": "Event log analysis for security events"
     }
+  },
+  "output": {
+    "formats": [
+      "markdown",
+      "rawjson"
+    ],
+    "path": "./output",
+    "timestamp": true,
+    "filename_prefix": "workstation_audit"
+  },
+  "settings": {
+    "collect_browser_data": false,
+    "collect_startup_programs": true,
+    "collect_user_folders": false,
+    "max_processes": 200,
+    "max_services": 300,
+    "eventlog": {
+      "analysis_days": 7,
+      "max_events_per_query": 1000,
+      "server_analysis_days": 3,
+      "server_max_events": 500
+    },
+    "antivirus_signatures": {
+      "SentinelOne": [
+        "SentinelAgent",
+        "SentinelRemediation",
+        "SentinelCtl"
+      ],
+      "CrowdStrike": [
+        "CSAgent",
+        "CSFalconService",
+        "CSFalconContainer"
+      ],
+      "CarbonBlack": [
+        "cb",
+        "CarbonBlack",
+        "RepMgr",
+        "RepUtils",
+        "RepUx"
+      ],
+      "Cortex XDR": [
+        "cytool",
+        "cyserver",
+        "CyveraService"
+      ],
+      "McAfee": [
+        "mcshield",
+        "mfemms",
+        "mfevtps",
+        "McCSPServiceHost",
+        "masvc"
+      ],
+      "Symantec": [
+        "ccSvcHst",
+        "NortonSecurity",
+        "navapsvc",
+        "rtvscan",
+        "savroam"
+      ],
+      "Trend Micro": [
+        "tmbmsrv",
+        "tmproxy",
+        "tmlisten",
+        "PccNTMon",
+        "TmListen"
+      ],
+      "Kaspersky": [
+        "avp",
+        "avpui",
+        "klnagent",
+        "ksde",
+        "kavfs"
+      ],
+      "Bitdefender": [
+        "bdagent",
+        "vsservppl",
+        "vsserv",
+        "updatesrv",
+        "bdredline"
+      ],
+      "ESET": [
+        "epag",
+        "epwd",
+        "ekrn",
+        "egui",
+        "efsw"
+      ],
+      "Sophos": [
+        "SophosAgent",
+        "savservice",
+        "SophosFS",
+        "SophosHealth"
+      ],
+      "F-Secure": [
+        "fsm32",
+        "fsgk32",
+        "fsav32",
+        "fshoster",
+        "FSMA"
+      ],
+      "Avast": [
+        "avastui",
+        "avastsvc",
+        "avastbrowser",
+        "wsc_proxy"
+      ],
+      "AVG": [
+        "avguard",
+        "avgui",
+        "avgrsa",
+        "avgfws",
+        "avgcsrvx"
+      ],
+      "Webroot": [
+        "WRSA",
+        "WRData",
+        "WRCore",
+        "WRConsumerService"
+      ],
+      "Malwarebytes": [
+        "mbamservice",
+        "mbamtray",
+        "MBAMProtector",
+        "mbae64"
+      ],
+      "Windows Defender": [
+        "MsMpEng",
+        "NisSrv",
+        "SecurityHealthService"
+      ]
+    }
+  }
 }
 '@
 
@@ -3278,9 +3371,28 @@ function Get-SecuritySettings {
 
         # Third-party AV detection via process matching from config
         if (Get-Variable -Name "Config" -Scope Global -ErrorAction SilentlyContinue) {
+            $ConfigSigs = $null
+
+            # Try inline signatures first (web version), then fall back to file
             if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures) {
                 $ConfigSigs = $Global:Config.settings.antivirus_signatures
+                Write-LogMessage "INFO" "Using inline AV signatures from config" "SECURITY"
+            }
+            elseif ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures_file) {
+                $AVSigFile = $Global:Config.settings.antivirus_signatures_file
+                if (Test-Path $AVSigFile) {
+                    try {
+                        $AVSigConfig = Get-Content $AVSigFile | ConvertFrom-Json
+                        $ConfigSigs = $AVSigConfig.antivirus_signatures
+                        Write-LogMessage "INFO" "Loaded AV signatures from $AVSigFile" "SECURITY"
+                    }
+                    catch {
+                        Write-LogMessage "WARN" "Failed to load AV signatures from $AVSigFile" "SECURITY"
+                    }
+                }
+            }
 
+            if ($ConfigSigs) {
                 # Get running processes once for matching
                 $RunningProcesses = Get-Process | Select-Object ProcessName
 

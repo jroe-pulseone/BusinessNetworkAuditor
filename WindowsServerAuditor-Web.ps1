@@ -3,7 +3,7 @@
 # Platform: Windows 10/11, Windows Server 2008-2022+
 # Requires: PowerShell 5.0+
 # Usage: [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm https://your-url/WindowsServerAuditor-Web.ps1)
-# Built: 2025-10-16 09:15:33
+# Built: 2025-10-17 10:40:56
 # Modules: 27 embedded modules in dependency order
 
 param(
@@ -14,116 +14,228 @@ param(
 # Embedded Configuration
 $Script:EmbeddedConfig = @'
 {
-    "version": "1.3.0",
-    "modules": {
-        "system": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "System information and server role detection"
-        },
-        "memory": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "Memory usage and configuration analysis"
-        },
-        "disk": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "Disk space and storage analysis"
-        },
-        "network": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Network configuration and security analysis"
-        },
-        "process": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Running processes and services analysis"
-        },
-        "patches": {
-            "enabled": true,
-            "timeout": 60,
-            "description": "Windows Update and patch status"
-        },
-        "software": {
-            "enabled": true,
-            "timeout": 45,
-            "description": "Installed software inventory with server focus"
-        },
-        "security": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "Security settings and antivirus detection"
-        },
-        "eventlog": {
-            "enabled": true,
-            "timeout": 45,
-            "description": "Event log analysis for server events"
-        },
-        "users": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "User accounts with server/service account focus"
-        },
-        "serverroles": {
-            "enabled": true,
-            "timeout": 30,
-            "description": "Windows Server roles and features detection"
-        },
-        "dhcp": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "DHCP server configuration and scope analysis"
-        },
-        "dns": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "DNS server zones and configuration analysis"
-        },
-        "fileshares": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "File shares and permissions analysis"
-        },
-        "activedirectory": {
-            "enabled": true,
-            "timeout": 45,
-            "description": "Active Directory users, groups, and configuration"
-        },
-        "iis": {
-            "enabled": true,
-            "timeout": 20,
-            "description": "IIS web server configuration and sites"
-        },
-        "services": {
-            "enabled": true,
-            "timeout": 15,
-            "description": "Windows services analysis with server focus"
-        }
+  "version": "1.3.0",
+  "modules": {
+    "system": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "System information and server role detection"
     },
-    "output": {
-        "formats": ["markdown", "rawjson"],
-        "path": "./output",
-        "timestamp": true,
-        "filename_prefix": "server_audit"
+    "memory": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "Memory usage and configuration analysis"
     },
-    "settings": {
-        "collect_ad_details": true,
-        "collect_dhcp_reservations": true,
-        "collect_dns_records": false,
-        "collect_iis_bindings": true,
-        "max_ad_users": 1000,
-        "max_ad_groups": 500,
-        "eventlog": {
-            "analysis_days": 3,
-            "max_events_per_query": 500,
-            "workstation_analysis_days": 7,
-            "workstation_max_events": 1000,
-            "domain_controller_analysis_days": 30,
-            "domain_controller_max_events": 500
-        }
+    "disk": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "Disk space and storage analysis"
+    },
+    "network": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Network configuration and security analysis"
+    },
+    "process": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Running processes and services analysis"
+    },
+    "patches": {
+      "enabled": true,
+      "timeout": 60,
+      "description": "Windows Update and patch status"
+    },
+    "software": {
+      "enabled": true,
+      "timeout": 45,
+      "description": "Installed software inventory with server focus"
+    },
+    "security": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "Security settings and antivirus detection"
+    },
+    "eventlog": {
+      "enabled": true,
+      "timeout": 45,
+      "description": "Event log analysis for server events"
+    },
+    "users": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "User accounts with server/service account focus"
+    },
+    "serverroles": {
+      "enabled": true,
+      "timeout": 30,
+      "description": "Windows Server roles and features detection"
+    },
+    "dhcp": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "DHCP server configuration and scope analysis"
+    },
+    "dns": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "DNS server zones and configuration analysis"
+    },
+    "fileshares": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "File shares and permissions analysis"
+    },
+    "activedirectory": {
+      "enabled": true,
+      "timeout": 45,
+      "description": "Active Directory users, groups, and configuration"
+    },
+    "iis": {
+      "enabled": true,
+      "timeout": 20,
+      "description": "IIS web server configuration and sites"
+    },
+    "services": {
+      "enabled": true,
+      "timeout": 15,
+      "description": "Windows services analysis with server focus"
     }
+  },
+  "output": {
+    "formats": [
+      "markdown",
+      "rawjson"
+    ],
+    "path": "./output",
+    "timestamp": true,
+    "filename_prefix": "server_audit"
+  },
+  "settings": {
+    "collect_ad_details": true,
+    "collect_dhcp_reservations": true,
+    "collect_dns_records": false,
+    "collect_iis_bindings": true,
+    "max_ad_users": 1000,
+    "max_ad_groups": 500,
+    "eventlog": {
+      "analysis_days": 3,
+      "max_events_per_query": 500,
+      "workstation_analysis_days": 7,
+      "workstation_max_events": 1000,
+      "domain_controller_analysis_days": 30,
+      "domain_controller_max_events": 500
+    },
+    "antivirus_signatures": {
+      "SentinelOne": [
+        "SentinelAgent",
+        "SentinelRemediation",
+        "SentinelCtl"
+      ],
+      "CrowdStrike": [
+        "CSAgent",
+        "CSFalconService",
+        "CSFalconContainer"
+      ],
+      "CarbonBlack": [
+        "cb",
+        "CarbonBlack",
+        "RepMgr",
+        "RepUtils",
+        "RepUx"
+      ],
+      "Cortex XDR": [
+        "cytool",
+        "cyserver",
+        "CyveraService"
+      ],
+      "McAfee": [
+        "mcshield",
+        "mfemms",
+        "mfevtps",
+        "McCSPServiceHost",
+        "masvc"
+      ],
+      "Symantec": [
+        "ccSvcHst",
+        "NortonSecurity",
+        "navapsvc",
+        "rtvscan",
+        "savroam"
+      ],
+      "Trend Micro": [
+        "tmbmsrv",
+        "tmproxy",
+        "tmlisten",
+        "PccNTMon",
+        "TmListen"
+      ],
+      "Kaspersky": [
+        "avp",
+        "avpui",
+        "klnagent",
+        "ksde",
+        "kavfs"
+      ],
+      "Bitdefender": [
+        "bdagent",
+        "vsservppl",
+        "vsserv",
+        "updatesrv",
+        "bdredline"
+      ],
+      "ESET": [
+        "epag",
+        "epwd",
+        "ekrn",
+        "egui",
+        "efsw"
+      ],
+      "Sophos": [
+        "SophosAgent",
+        "savservice",
+        "SophosFS",
+        "SophosHealth"
+      ],
+      "F-Secure": [
+        "fsm32",
+        "fsgk32",
+        "fsav32",
+        "fshoster",
+        "FSMA"
+      ],
+      "Avast": [
+        "avastui",
+        "avastsvc",
+        "avastbrowser",
+        "wsc_proxy"
+      ],
+      "AVG": [
+        "avguard",
+        "avgui",
+        "avgrsa",
+        "avgfws",
+        "avgcsrvx"
+      ],
+      "Webroot": [
+        "WRSA",
+        "WRData",
+        "WRCore",
+        "WRConsumerService"
+      ],
+      "Malwarebytes": [
+        "mbamservice",
+        "mbamtray",
+        "MBAMProtector",
+        "mbae64"
+      ],
+      "Windows Defender": [
+        "MsMpEng",
+        "NisSrv",
+        "SecurityHealthService"
+      ]
+    }
+  }
 }
 '@
 
@@ -312,12 +424,16 @@ function Import-AuditData {
         try {
             Write-Verbose "Processing: $($JsonFile.Name)"
             
-            # Read and parse JSON (handle BOM characters)
+            # Read and parse JSON (handle BOM characters and empty category names)
             $JsonContent = Get-Content $JsonFile.FullName -Raw -Encoding UTF8
             # Remove BOM if present
             if ($JsonContent.Length -gt 0 -and $JsonContent[0] -eq [char]0xFEFF) {
                 $JsonContent = $JsonContent.Substring(1)
             }
+            # Remove empty string category (audit tool bug) using multiline regex
+            $JsonContent = $JsonContent -replace '(?s)"":\s*\{.*?"findings":\s*\[.*?\]\s*\},?\s*', ''
+            # Clean up trailing commas before closing braces
+            $JsonContent = $JsonContent -replace ',(\s*[\]}])', '$1'
             $AuditData = $JsonContent | ConvertFrom-Json
             
             # Determine file type and validate structure
@@ -331,9 +447,14 @@ function Import-AuditData {
                     continue
                 }
             } else {
-                # Validate system audit file structure
-                if (-not $AuditData.metadata -or -not $AuditData.compliance_framework.findings) {
-                    Write-Warning "Invalid audit file format: $($JsonFile.Name) - Missing metadata or compliance_framework.findings"
+                # Validate system audit file structure - support all formats
+                # Old format: compliance_framework.findings (pre-Sept 12)
+                # Current format: categories + recommendation_framework (Sept 12+)
+                $HasOldFormat = $AuditData.metadata -and $AuditData.compliance_framework.findings
+                $HasCurrentFormat = $AuditData.metadata -and $AuditData.categories
+
+                if (-not $HasOldFormat -and -not $HasCurrentFormat) {
+                    Write-Warning "Invalid audit file format: $($JsonFile.Name) - Missing metadata or findings structure"
                     $Result.Errors += "Invalid format: $($JsonFile.Name)"
                     continue
                 }
@@ -354,13 +475,36 @@ function Import-AuditData {
                     LastBootTime = ""
                 }
             } else {
+                # Count findings based on format
+                $TotalFindings = 0
+                if ($AuditData.compliance_framework.findings) {
+                    $TotalFindings = $AuditData.compliance_framework.findings.Count
+                } elseif ($AuditData.categories) {
+                    # Count findings across all categories
+                    try {
+                        $AuditData.categories.PSObject.Properties | ForEach-Object {
+                            if ($_.Value -and $_.Value.findings -and $_.Value.findings.Count) {
+                                $TotalFindings += $_.Value.findings.Count
+                            }
+                        }
+                    } catch {
+                        Write-Verbose "Error counting findings: $($_.Exception.Message)"
+                        $TotalFindings = 0
+                    }
+                }
+
+                # Safely convert metadata values to strings
+                $ComputerName = if ($AuditData.metadata.computer_name) { $AuditData.metadata.computer_name.ToString() } else { "Unknown" }
+                $AuditTimestamp = if ($AuditData.metadata.audit_timestamp) { $AuditData.metadata.audit_timestamp.ToString() } else { "Unknown" }
+                $ToolVersion = if ($AuditData.metadata.tool_version) { $AuditData.metadata.tool_version.ToString() } else { "Unknown" }
+
                 $SystemInfo = [PSCustomObject]@{
-                    ComputerName = $AuditData.metadata.computer_name
-                    AuditTimestamp = $AuditData.metadata.audit_timestamp
-                    ToolVersion = $AuditData.metadata.tool_version
+                    ComputerName = $ComputerName
+                    AuditTimestamp = $AuditTimestamp
+                    ToolVersion = $ToolVersion
                     FileName = $JsonFile.Name
                     FileSize = [math]::Round($JsonFile.Length / 1KB, 1)
-                    FindingCount = $AuditData.compliance_framework.findings.Count
+                    FindingCount = $TotalFindings
                     OperatingSystem = ""
                     SystemType = "Unknown"
                     Domain = ""
@@ -412,38 +556,98 @@ function Import-AuditData {
                     $Result.FindingCount++
                 }
             } else {
-                # Process system audit findings
-                foreach ($Finding in $AuditData.compliance_framework.findings) {
-                    # Map the compliance framework structure to expected format
-                    $EnrichedFinding = [PSCustomObject]@{
-                        Category = $Finding.category
-                        Item = $Finding.item
-                        Value = "" # Not available in compliance framework
-                        Details = $Finding.requirement
-                        RiskLevel = $Finding.risk_level
-                        Recommendation = $Finding.requirement
-                        SystemName = $SystemInfo.ComputerName
-                        SystemType = $SystemInfo.SystemType
-                        AuditDate = $SystemInfo.AuditTimestamp
-                        FindingId = $Finding.finding_id
-                        Framework = $Finding.framework
-                    }
+                # Process system audit findings - handle both old and new formats
+                if ($AuditData.compliance_framework.findings) {
+                    # Old format: compliance_framework.findings array
+                    foreach ($Finding in $AuditData.compliance_framework.findings) {
+                        if (-not $Finding.category -or -not $Finding.item) {
+                            Write-Verbose "Skipping finding with missing category or item in $($JsonFile.Name)"
+                            continue
+                        }
 
-                    $Result.AllFindings += $EnrichedFinding
-                    $Result.FindingCount++
+                        $EnrichedFinding = [PSCustomObject]@{
+                            Category = if ($Finding.category) { [string]$Finding.category } else { "Unknown" }
+                            Item = if ($Finding.item) { [string]$Finding.item } else { "Unknown" }
+                            Value = ""
+                            Details = if ($Finding.requirement) { [string]$Finding.requirement } else { "No details available" }
+                            RiskLevel = if ($Finding.risk_level) { [string]$Finding.risk_level } else { "INFO" }
+                            Recommendation = if ($Finding.requirement) { [string]$Finding.requirement } else { "No recommendation available" }
+                            SystemName = if ($SystemInfo.ComputerName) { [string]$SystemInfo.ComputerName } else { "Unknown" }
+                            SystemType = if ($SystemInfo.SystemType) { [string]$SystemInfo.SystemType } else { "Unknown" }
+                            AuditDate = if ($SystemInfo.AuditTimestamp) { [string]$SystemInfo.AuditTimestamp } else { "Unknown" }
+                            FindingId = if ($Finding.finding_id) { [string]$Finding.finding_id } else { "UNKNOWN-$(Get-Random)" }
+                            Framework = if ($Finding.framework) { [string]$Finding.framework } else { "Unknown" }
+                        }
+
+                        $Result.AllFindings += $EnrichedFinding
+                        $Result.FindingCount++
+                    }
+                } elseif ($AuditData.categories) {
+                    # New format: categories with nested findings
+                    $AuditData.categories.PSObject.Properties | ForEach-Object {
+                        $CategoryName = $_.Name
+                        $CategoryData = $_.Value
+
+                        # Skip empty category names (audit tool bug)
+                        if ([string]::IsNullOrWhiteSpace($CategoryName)) {
+                            Write-Verbose "Skipping empty category name in $($JsonFile.Name)"
+                            return
+                        }
+
+                        if ($CategoryData.findings) {
+                            foreach ($Finding in $CategoryData.findings) {
+                                # Skip findings with all null fields (corrupted data)
+                                if ($null -eq $Finding.item_name -or
+                                    [string]::IsNullOrWhiteSpace($Finding.item_name) -or
+                                    ($null -eq $Finding.category -and $null -eq $Finding.details)) {
+                                    Write-Verbose "Skipping finding with null/empty data in $($JsonFile.Name)"
+                                    continue
+                                }
+
+                                try {
+                                    # Convert value to string safely, handling integers and nulls
+                                    $ValueString = ""
+                                    if ($null -ne $Finding.value) {
+                                        $ValueString = $Finding.value.ToString()
+                                    }
+
+                                    $EnrichedFinding = [PSCustomObject]@{
+                                        Category = if ($Finding.category) { $Finding.category.ToString() } else { $CategoryName }
+                                        Item = $Finding.item_name.ToString()
+                                        Value = $ValueString
+                                        Details = if ($Finding.details) { $Finding.details.ToString() } else { "No details available" }
+                                        RiskLevel = if ($Finding.risk_level) { $Finding.risk_level.ToString() } else { "INFO" }
+                                        Recommendation = if ($Finding.recommendation_note) { $Finding.recommendation_note.ToString() } else { "" }
+                                        SystemName = if ($SystemInfo.ComputerName) { $SystemInfo.ComputerName.ToString() } else { "Unknown" }
+                                        SystemType = if ($SystemInfo.SystemType) { $SystemInfo.SystemType.ToString() } else { "Unknown" }
+                                        AuditDate = if ($SystemInfo.AuditTimestamp) { $SystemInfo.AuditTimestamp.ToString() } else { "Unknown" }
+                                        FindingId = if ($Finding.id) { $Finding.id.ToString() } else { "UNKNOWN-$(Get-Random)" }
+                                        Framework = "WindowsAudit"
+                                    }
+
+                                    $Result.AllFindings += $EnrichedFinding
+                                    $Result.FindingCount++
+                                } catch {
+                                    Write-Verbose "Skipping finding due to property error in $($JsonFile.Name): $($_.Exception.Message)"
+                                    continue
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
             $Result.ImportedFiles += $JsonFile.Name
             if ($IsDarkWebFile) {
-                Write-Verbose "  → Imported $($DarkWebFindings.Count) dark web findings"
+                Write-Verbose "  > Imported $($DarkWebFindings.Count) dark web findings"
             } else {
-                Write-Verbose "  → Imported $($AuditData.compliance_framework.findings.Count) findings from $($SystemInfo.ComputerName)"
+                Write-Verbose "  > Imported $($SystemInfo.FindingCount) findings from $($SystemInfo.ComputerName)"
             }
             
         }
         catch {
             Write-Warning "Failed to process $($JsonFile.Name): $($_.Exception.Message)"
+            Write-Verbose "Error details: $($_.ScriptStackTrace)"
             $Result.Errors += "Processing error: $($JsonFile.Name) - $($_.Exception.Message)"
         }
     }
@@ -859,11 +1063,20 @@ function Generate-ExecutiveSummary {
     
     Write-Verbose "Generating executive summary for $($ImportedData.SystemCount) systems"
     
+    # Environment Overview Analysis (separate computers from dark web checks)
+    $WorkstationCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Workstation*" }).Count
+    $ServerCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Server*" }).Count
+    $DarkWebChecks = ($ImportedData.Systems | Where-Object { $_.SystemType -eq "Breach Monitor" }).Count
+    $DomainControllers = ($ImportedData.AllFindings | Where-Object { $_.Category -eq "System" -and $_.Item -eq "Server Roles" -and $_.Value -like "*Domain Controller*" }).Count
+
+    # Systems assessed = computers only (exclude dark web checks)
+    $ComputerCount = $WorkstationCount + $ServerCount
+
     # Initialize summary object
     $Summary = [PSCustomObject]@{
         ClientName = $ClientName
         AssessmentDate = (Get-Date).ToString("MMMM yyyy")
-        SystemsAssessed = $ImportedData.SystemCount
+        SystemsAssessed = $ComputerCount
         TotalFindings = $ImportedData.FindingCount
         RiskDistribution = $ImportedData.RiskSummary
         KeyFindings = @()
@@ -873,20 +1086,14 @@ function Generate-ExecutiveSummary {
         SecurityStrengths = @()
         PositiveFindings = @{}
     }
-    
-    # Environment Overview Analysis
-    $WorkstationCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Workstation*" -or $_.SystemType -eq "Unknown" }).Count
-    $ServerCount = ($ImportedData.Systems | Where-Object { $_.SystemType -like "*Server*" }).Count
-    $DarkWebChecks = ($ImportedData.Systems | Where-Object { $_.SystemType -eq "Breach Monitor" }).Count
-    $DomainControllers = ($ImportedData.AllFindings | Where-Object { $_.Category -eq "System" -and $_.Item -eq "Server Roles" -and $_.Value -like "*Domain Controller*" }).Count
-    
+
     $Summary.EnvironmentOverview = @{
         TotalSystems = $ImportedData.SystemCount
         Workstations = $WorkstationCount
         Servers = $ServerCount
         DarkWebChecks = $DarkWebChecks
         DomainControllers = $DomainControllers
-        AssessmentScope = "$($ImportedData.SystemCount) systems assessed"
+        AssessmentScope = "$ComputerCount computers ($WorkstationCount workstations, $ServerCount servers)" + $(if ($DarkWebChecks -gt 0) { " + $DarkWebChecks dark web check(s)" } else { "" })
     }
     
     # Key Findings Analysis (HIGH and MEDIUM risk items)
@@ -2017,9 +2224,34 @@ function Get-SystemInformation {
             Category = "System"
             Item = "Hardware"
             Value = "$($Computer.Manufacturer) $($Computer.Model)"
-            Details = "RAM: $([math]::Round($Computer.TotalPhysicalMemory/1GB, 2))GB, Processors: $($Computer.NumberOfProcessors)"
+            Details = "RAM: $([math]::Round($Computer.TotalPhysicalMemory/1GB, 2))GB"
             RiskLevel = "INFO"
             Recommendation = ""
+        }
+
+        # Processor Details
+        try {
+            $Processors = Get-CimInstance -ClassName Win32_Processor
+            foreach ($Processor in $Processors) {
+                $ProcessorName = $Processor.Name
+                $ProcessorSpeedGHz = [math]::Round($Processor.MaxClockSpeed / 1000, 2)
+                $LogicalProcessors = $Processor.NumberOfLogicalProcessors
+                $PhysicalCores = $Processor.NumberOfCores
+
+                $Results += [PSCustomObject]@{
+                    Category = "System"
+                    Item = "Processor"
+                    Value = $ProcessorName
+                    Details = "Speed: $ProcessorSpeedGHz GHz, Cores: $PhysicalCores, Logical Processors: $LogicalProcessors"
+                    RiskLevel = "INFO"
+                    Recommendation = ""
+                }
+
+                Write-LogMessage "INFO" "Processor: $ProcessorName - $ProcessorSpeedGHz GHz, $PhysicalCores cores" "SYSTEM"
+            }
+        }
+        catch {
+            Write-LogMessage "WARN" "Could not retrieve processor details: $($_.Exception.Message)" "SYSTEM"
         }
         
         # Domain Status with Tenant Info
@@ -2103,7 +2335,7 @@ function Get-DiskSpaceAnalysis {
     
     try {
         $Results = @()
-        $Drives = Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 }
+        $Drives = @(Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 })
         
         foreach ($Drive in $Drives) {
             $DriveLetter = $Drive.DeviceID
@@ -2162,7 +2394,7 @@ function Get-DiskSpaceAnalysis {
             Write-LogMessage "WARN" "Could not retrieve disk health information: $($_.Exception.Message)" "DISK"
         }
         
-        $DriveCount = if ($Drives) { $Drives.Count } else { 0 }
+        $DriveCount = $Drives.Count
         Write-LogMessage "SUCCESS" "Disk space analysis completed - $DriveCount drives analyzed" "DISK"
         return $Results
     }
@@ -2200,65 +2432,43 @@ function Get-MemoryAnalysis {
     try {
         $Results = @()
         
-        # Get physical memory information
-        $OS = Get-CimInstance -ClassName Win32_OperatingSystem
+        # Get physical memory information (capacity only, not usage snapshot)
         $Computer = Get-CimInstance -ClassName Win32_ComputerSystem
-        
         $TotalMemoryGB = [math]::Round($Computer.TotalPhysicalMemory / 1GB, 2)
-        $FreeMemoryGB = [math]::Round($OS.FreePhysicalMemory / 1KB / 1MB, 2)
-        $UsedMemoryGB = $TotalMemoryGB - $FreeMemoryGB
-        $MemoryUsagePercent = [math]::Round(($UsedMemoryGB / $TotalMemoryGB) * 100, 1)
-        
-        # Determine memory usage risk level
-        $MemoryRiskLevel = if ($MemoryUsagePercent -gt 85) { "HIGH" }
-                          elseif ($MemoryUsagePercent -gt 75) { "MEDIUM" }
-                          else { "LOW" }
-        
-        $MemoryRecommendation = if ($MemoryUsagePercent -gt 80) {
-            "High memory usage may impact system performance"
-        } else { "" }
-        
+
         $Results += [PSCustomObject]@{
             Category = "Memory"
-            Item = "Physical Memory Usage"
-            Value = "$MemoryUsagePercent% used"
-            Details = "Total: $TotalMemoryGB GB, Used: $UsedMemoryGB GB, Free: $FreeMemoryGB GB"
-            RiskLevel = $MemoryRiskLevel
+            Item = "Physical Memory Capacity"
+            Value = "$TotalMemoryGB GB installed"
+            Details = "Total installed RAM"
+            RiskLevel = "INFO"
             Recommendation = ""
         }
+
+        Write-LogMessage "INFO" "Physical Memory: $TotalMemoryGB GB installed" "MEMORY"
         
-        Write-LogMessage "INFO" "Physical Memory: $MemoryUsagePercent% used ($UsedMemoryGB GB / $TotalMemoryGB GB)" "MEMORY"
-        
-        # Get virtual memory (page file) information
+        # Get virtual memory (page file) configuration
         try {
             $PageFiles = Get-CimInstance -ClassName Win32_PageFileUsage
             if ($PageFiles) {
                 foreach ($PageFile in $PageFiles) {
                     $PageFileSizeGB = [math]::Round($PageFile.AllocatedBaseSize / 1024, 2)
-                    $PageFileUsedGB = [math]::Round($PageFile.CurrentUsage / 1024, 2)
-                    $PageFileUsagePercent = if ($PageFileSizeGB -gt 0) { 
-                        [math]::Round(($PageFileUsedGB / $PageFileSizeGB) * 100, 1) 
-                    } else { 0 }
-                    
-                    $PageFileRisk = if ($PageFileUsagePercent -gt 80) { "HIGH" }
-                                   elseif ($PageFileUsagePercent -gt 60) { "MEDIUM" }
-                                   else { "LOW" }
-                    
+
                     $Results += [PSCustomObject]@{
                         Category = "Memory"
-                        Item = "Virtual Memory"
-                        Value = "$PageFileUsagePercent% used"
-                        Details = "Page File: $($PageFile.Name), Size: $PageFileSizeGB GB, Used: $PageFileUsedGB GB"
-                        RiskLevel = $PageFileRisk
-                        Recommendation = if ($PageFileUsagePercent -gt 70) { "Monitor virtual memory usage" } else { "" }
+                        Item = "Virtual Memory Configuration"
+                        Value = "$PageFileSizeGB GB configured"
+                        Details = "Page File: $($PageFile.Name), Size: $PageFileSizeGB GB"
+                        RiskLevel = "INFO"
+                        Recommendation = ""
                     }
-                    
-                    Write-LogMessage "INFO" "Page File $($PageFile.Name): $PageFileUsagePercent% used ($PageFileUsedGB GB / $PageFileSizeGB GB)" "MEMORY"
+
+                    Write-LogMessage "INFO" "Page File $($PageFile.Name): $PageFileSizeGB GB configured" "MEMORY"
                 }
             } else {
                 $Results += [PSCustomObject]@{
                     Category = "Memory"
-                    Item = "Virtual Memory"
+                    Item = "Virtual Memory Configuration"
                     Value = "No page file configured"
                     Details = "System has no virtual memory page file"
                     RiskLevel = "MEDIUM"
@@ -2270,40 +2480,8 @@ function Get-MemoryAnalysis {
         catch {
             Write-LogMessage "WARN" "Could not retrieve page file information: $($_.Exception.Message)" "MEMORY"
         }
-        
-        # Get memory performance counters
-        try {
-            $AvailableBytes = (Get-Counter "\Memory\Available Bytes" -SampleInterval 1 -MaxSamples 1).CounterSamples[0].CookedValue
-            $AvailableMB = [math]::Round($AvailableBytes / 1MB, 0)
-            
-            $CommittedBytes = (Get-Counter "\Memory\Committed Bytes" -SampleInterval 1 -MaxSamples 1).CounterSamples[0].CookedValue
-            $CommittedMB = [math]::Round($CommittedBytes / 1MB, 0)
-            
-            $Results += [PSCustomObject]@{
-                Category = "Memory"
-                Item = "Available Memory"
-                Value = "$AvailableMB MB available"
-                Details = "System has $AvailableMB MB available for allocation"
-                RiskLevel = if ($AvailableMB -lt 512) { "HIGH" } elseif ($AvailableMB -lt 1024) { "MEDIUM" } else { "LOW" }
-                Recommendation = if ($AvailableMB -lt 1024) { "Low available memory may impact performance" } else { "" }
-            }
-            
-            $Results += [PSCustomObject]@{
-                Category = "Memory"
-                Item = "Committed Memory"
-                Value = "$CommittedMB MB committed"
-                Details = "System has committed $CommittedMB MB of virtual memory"
-                RiskLevel = "INFO"
-                Recommendation = ""
-            }
-            
-            Write-LogMessage "INFO" "Memory Performance: Available: $AvailableMB MB, Committed: $CommittedMB MB" "MEMORY"
-        }
-        catch {
-            Write-LogMessage "WARN" "Could not retrieve memory performance counters: $($_.Exception.Message)" "MEMORY"
-        }
-        
-        Write-LogMessage "SUCCESS" "Memory analysis completed - Total RAM: $TotalMemoryGB GB, Usage: $MemoryUsagePercent%" "MEMORY"
+
+        Write-LogMessage "SUCCESS" "Memory analysis completed - Total RAM: $TotalMemoryGB GB" "MEMORY"
         return $Results
     }
     catch {
@@ -2357,44 +2535,7 @@ function Get-ProcessAnalysis {
                 Recommendation = ""
             }
             
-            # Check for high CPU usage processes - header + detail format
-            $HighCPUProcesses = $Processes | Where-Object { $_.CPU -gt 60 } | Select-Object -First 5
-            if ($HighCPUProcesses.Count -gt 0) {
-                $HighestCPU = $HighCPUProcesses | Sort-Object CPU -Descending | Select-Object -First 1
-                $TopCPU = [math]::Round($HighestCPU.CPU, 2)
-                $CPURisk = if ($TopCPU -gt 300) { "HIGH" } elseif ($TopCPU -gt 120) { "MEDIUM" } else { "LOW" }
-                
-                # Header entry with compliance message
-                $Results += [PSCustomObject]@{
-                    Category = "Processes"
-                    Item = "High CPU Processes"
-                    Value = "$($HighCPUProcesses.Count) processes detected"
-                    Details = "Processes using significant CPU time may impact system performance"
-                    RiskLevel = $CPURisk
-                    Recommendation = if ($TopCPU -gt 180) { "Investigate high CPU usage processes for performance impact" } else { "" }
-                }
-                
-                # Individual detail entries without compliance duplication
-                foreach ($Process in $HighCPUProcesses) {
-                    $ProcessName = $Process.ProcessName
-                    $CPU = [math]::Round($Process.CPU, 2)
-                    $Memory = [math]::Round($Process.WorkingSet64 / 1MB, 2)
-                    $ProcessId = $Process.Id
-                    
-                    $Results += [PSCustomObject]@{
-                        Category = "Processes"
-                        Item = "High CPU Process"
-                        Value = "$ProcessName (PID: $ProcessId)"
-                        Details = "CPU: $CPU seconds, Memory: $Memory MB"
-                        RiskLevel = "INFO"
-                        Recommendation = ""
-                    }
-                    
-                    Write-LogMessage "INFO" "High CPU process: $ProcessName - CPU: $CPU seconds, Memory: $Memory MB" "PROCESS"
-                }
-            }
-            
-            Write-LogMessage "INFO" "Process analysis: $ProcessCount total, $($HighCPUProcesses.Count) high CPU" "PROCESS"
+            Write-LogMessage "INFO" "Process analysis: $ProcessCount total processes" "PROCESS"
         }
         catch {
             Write-LogMessage "WARN" "Could not retrieve process information: $($_.Exception.Message)" "PROCESS"
@@ -2570,31 +2711,25 @@ function Get-ProcessAnalysis {
             Write-LogMessage "WARN" "Could not retrieve startup program information: $($_.Exception.Message)" "PROCESS"
         }
         
-        # Check system performance and resource usage
+        # System hardware information (factual, not performance snapshot)
         try {
-            $OS = Get-CimInstance -ClassName Win32_OperatingSystem
             $ComputerSystem = Get-CimInstance -ClassName Win32_ComputerSystem
-            
             $TotalMemoryGB = [math]::Round($ComputerSystem.TotalPhysicalMemory / 1GB, 2)
-            $FreeMemoryGB = [math]::Round($OS.FreePhysicalMemory / 1KB / 1MB, 2)
-            $MemoryUsagePercent = [math]::Round((($TotalMemoryGB - $FreeMemoryGB) / $TotalMemoryGB) * 100, 1)
-            
-            $ProcessorCount = (Get-CimInstance -ClassName Win32_ComputerSystem).NumberOfLogicalProcessors
-            $ProcessorUsage = Get-CimInstance -ClassName Win32_PerfRawData_PerfOS_Processor | Where-Object { $_.Name -eq "_Total" }
-            
+            $ProcessorCount = $ComputerSystem.NumberOfLogicalProcessors
+
             $Results += [PSCustomObject]@{
                 Category = "Performance"
-                Item = "System Resource Usage"
-                Value = "Memory: $MemoryUsagePercent% used"
+                Item = "System Hardware"
+                Value = "$TotalMemoryGB GB RAM"
                 Details = "Total RAM: $TotalMemoryGB GB, Processors: $ProcessorCount, Active processes: $ProcessCount"
-                RiskLevel = if ($MemoryUsagePercent -gt 85) { "HIGH" } elseif ($MemoryUsagePercent -gt 75) { "MEDIUM" } else { "LOW" }
-                Recommendation = if ($MemoryUsagePercent -gt 80) { "High memory usage may impact system performance" } else { "" }
+                RiskLevel = "INFO"
+                Recommendation = ""
             }
-            
-            Write-LogMessage "INFO" "System resources: $MemoryUsagePercent% memory used, $ProcessorCount processors" "PROCESS"
+
+            Write-LogMessage "INFO" "System hardware: $TotalMemoryGB GB RAM, $ProcessorCount processors" "PROCESS"
         }
         catch {
-            Write-LogMessage "WARN" "Could not retrieve system performance information: $($_.Exception.Message)" "PROCESS"
+            Write-LogMessage "WARN" "Could not retrieve system hardware information: $($_.Exception.Message)" "PROCESS"
         }
         
         Write-LogMessage "SUCCESS" "Process analysis completed - $($Results.Count) items analyzed" "PROCESS"
@@ -2616,36 +2751,36 @@ function Get-SoftwareInventory {
     <#
     .SYNOPSIS
         Collects comprehensive software inventory from Windows registry
-        
+
     .DESCRIPTION
         Performs detailed software inventory analysis including:
         - Installed program enumeration from both 32-bit and 64-bit registry locations
         - Critical software version checking (browsers, office suites, runtimes)
         - Software age analysis for update compliance
         - Installation date tracking for security assessment
-        
+
     .OUTPUTS
         Array of PSCustomObjects with Category, Item, Value, Details, RiskLevel, Recommendation
-        
+
     .NOTES
         Requires: Write-LogMessage function
         Permissions: Standard user rights sufficient for registry reading
         Coverage: Both 32-bit and 64-bit installed applications
     #>
-    
+
     Write-LogMessage "INFO" "Collecting software inventory..." "SOFTWARE"
-    
+
     try {
         $Software64 = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
                      Where-Object { $_.DisplayName -and $_.DisplayName -notlike "KB*" }
-        
+
         $Software32 = Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
                      Where-Object { $_.DisplayName -and $_.DisplayName -notlike "KB*" }
-        
+
         $AllSoftware = $Software64 + $Software32 | Sort-Object DisplayName -Unique
-        
+
         $Results = @()
-        
+
         # Software count summary
         $Results += [PSCustomObject]@{
             Category = "Software"
@@ -2655,183 +2790,139 @@ function Get-SoftwareInventory {
             RiskLevel = "INFO"
             Recommendation = ""
         }
-        
-        # Check for critical software and versions
-        $CriticalSoftware = @(
-            @{Name="Google Chrome"; Pattern="Chrome"}
-            @{Name="Mozilla Firefox"; Pattern="Firefox"}
-            @{Name="Adobe Acrobat"; Pattern="Adobe.*Acrobat"}
-            @{Name="Microsoft Office"; Pattern="Microsoft Office"}
-            @{Name="Java"; Pattern="Java"}
+
+
+        # Remote access software detection - simple prefix matching
+        $RemoteAccessPrefixes = @(
+            "TeamViewer",
+            "AnyDesk",
+            "Chrome Remote Desktop",
+            "VNC Viewer",
+            "RealVNC",
+            "UltraVNC",
+            "TightVNC",
+            "LogMeIn Pro",
+            "LogMeIn Client",
+            "GoToMyPC",
+            "Splashtop Streamer",
+            "Splashtop Business",
+            "Parsec",
+            "Ammyy Admin",
+            "SupRemo",
+            "Radmin Viewer",
+            "ScreenConnect Client",
+            "BeyondTrust",
+            "Bomgar",
+            "Jump Desktop",
+            "NoMachine",
+            "DameWare",
+            "pcAnywhere",
+            "GoToAssist",
+            "RemotePC",
+            "Zoho Assist",
+            "LiteManager"
         )
-        
-        foreach ($Critical in $CriticalSoftware) {
-            $Found = $AllSoftware | Where-Object { $_.DisplayName -match $Critical.Pattern } | Select-Object -First 1
-            if ($Found) {
-                $InstallDate = if ($Found.InstallDate) { 
-                    try { [datetime]::ParseExact($Found.InstallDate, "yyyyMMdd", $null) } catch { $null }
-                } else { $null }
-                
-                $AgeInDays = if ($InstallDate) { (New-TimeSpan -Start $InstallDate -End (Get-Date)).Days } else { $null }
-                
-                $RiskLevel = if ($AgeInDays -gt 365) { "HIGH" } elseif ($AgeInDays -gt 180) { "MEDIUM" } else { "LOW" }
-                
-                $Results += [PSCustomObject]@{
-                    Category = "Software"
-                    Item = $Critical.Name
-                    Value = $Found.DisplayVersion
-                    Details = "Install Date: $(if ($InstallDate) { $InstallDate.ToString('yyyy-MM-dd') } else { 'Unknown' }), Age: $(if ($AgeInDays) { "$AgeInDays days" } else { 'Unknown' })"
-                    RiskLevel = $RiskLevel
-                    Recommendation = if ($AgeInDays -gt 365) { "Regular software updates required" } else { "" }
-                }
-            }
-        }
-        
-        # Check for remote access software - investigation point
-        $RemoteAccessSoftware = @(
-            @{Name="TeamViewer"; Pattern="TeamViewer"; Risk="MEDIUM"}
-            @{Name="AnyDesk"; Pattern="AnyDesk"; Risk="MEDIUM"}
-            @{Name="Chrome Remote Desktop"; Pattern="Chrome Remote Desktop"; Risk="MEDIUM"}
-            @{Name="VNC Viewer"; Pattern="VNC.*Viewer|RealVNC"; Risk="MEDIUM"}
-            @{Name="UltraVNC"; Pattern="UltraVNC"; Risk="MEDIUM"}
-            @{Name="TightVNC"; Pattern="TightVNC"; Risk="MEDIUM"}
-            @{Name="Remote Desktop Manager"; Pattern="Remote Desktop Manager"; Risk="MEDIUM"}
-            @{Name="LogMeIn"; Pattern="LogMeIn"; Risk="MEDIUM"}
-            @{Name="GoToMyPC"; Pattern="GoToMyPC"; Risk="MEDIUM"}
-            @{Name="Splashtop"; Pattern="Splashtop"; Risk="MEDIUM"}
-            @{Name="Parsec"; Pattern="Parsec"; Risk="MEDIUM"}
-            @{Name="Ammyy Admin"; Pattern="Ammyy"; Risk="HIGH"}
-            @{Name="SupRemo"; Pattern="SupRemo"; Risk="MEDIUM"}
-            @{Name="Radmin"; Pattern="Radmin"; Risk="MEDIUM"}
-            # Additional common enterprise remote access tools
-            @{Name="ScreenConnect"; Pattern="ScreenConnect|ConnectWise.*Control"; Risk="MEDIUM"}
-            @{Name="ConnectWise Control"; Pattern="ConnectWise.*Control|ScreenConnect"; Risk="MEDIUM"}
-            @{Name="BeyondTrust Remote Support"; Pattern="BeyondTrust|Bomgar"; Risk="MEDIUM"}
-            @{Name="Jump Desktop"; Pattern="Jump Desktop"; Risk="MEDIUM"}
-            @{Name="NoMachine"; Pattern="NoMachine"; Risk="MEDIUM"}
-            @{Name="Windows Remote Assistance"; Pattern="Remote Assistance"; Risk="MEDIUM"}
-            @{Name="Apple Remote Desktop"; Pattern="Apple Remote Desktop|ARD"; Risk="MEDIUM"}
-            @{Name="DameWare"; Pattern="DameWare"; Risk="MEDIUM"}
-            @{Name="pcAnywhere"; Pattern="pcAnywhere"; Risk="MEDIUM"}
-            @{Name="GoToAssist"; Pattern="GoToAssist"; Risk="MEDIUM"}
-            @{Name="RemotePC"; Pattern="RemotePC"; Risk="MEDIUM"}
-            @{Name="NinjaOne Remote"; Pattern="NinjaOne"; Risk="MEDIUM"}
-            @{Name="Zoho Assist"; Pattern="Zoho Assist"; Risk="MEDIUM"}
-            @{Name="LiteManager"; Pattern="LiteManager"; Risk="MEDIUM"}
-        )
-        
+
         $DetectedRemoteAccess = @()
-        foreach ($RemoteApp in $RemoteAccessSoftware) {
-            $Found = $AllSoftware | Where-Object { $_.DisplayName -match $RemoteApp.Pattern }
+        foreach ($Prefix in $RemoteAccessPrefixes) {
+            $Found = $AllSoftware | Where-Object { $_.DisplayName -like "$Prefix*" }
             foreach ($App in $Found) {
-                $InstallDate = if ($App.InstallDate) { 
+                $InstallDate = if ($App.InstallDate) {
                     try { [datetime]::ParseExact($App.InstallDate, "yyyyMMdd", $null) } catch { $null }
                 } else { $null }
-                
+
                 $DetectedRemoteAccess += [PSCustomObject]@{
-                    Name = $RemoteApp.Name
                     DisplayName = $App.DisplayName
                     Version = $App.DisplayVersion
                     InstallDate = $InstallDate
-                    Risk = $RemoteApp.Risk
                 }
-                
+
                 $Results += [PSCustomObject]@{
                     Category = "Software"
                     Item = "Remote Access Software"
                     Value = "$($App.DisplayName) - $($App.DisplayVersion)"
                     Details = "Remote access software detected. Install date: $(if ($InstallDate) { $InstallDate.ToString('yyyy-MM-dd') } else { 'Unknown' }). Review business justification and security controls."
-                    RiskLevel = $RemoteApp.Risk
+                    RiskLevel = "MEDIUM"
                     Recommendation = "Document and secure remote access tools"
                 }
             }
         }
-        
+
         if ($DetectedRemoteAccess.Count -gt 0) {
-            Write-LogMessage "WARN" "Remote access software detected: $(($DetectedRemoteAccess | Select-Object -ExpandProperty Name) -join ', ')" "SOFTWARE"
-            
-            # Add to raw data collection
+            Write-LogMessage "WARN" "Remote access software detected: $(($DetectedRemoteAccess | Select-Object -ExpandProperty DisplayName) -join ', ')" "SOFTWARE"
             Add-RawDataCollection -CollectionName "RemoteAccessSoftware" -Data $DetectedRemoteAccess
         } else {
             Write-LogMessage "INFO" "No remote access software detected" "SOFTWARE"
         }
-        
-        # Check for RMM (Remote Monitoring and Management) software - investigation point
-        $RMMSoftware = @(
-            # ConnectWise Products
-            @{Name="ConnectWise Automate"; Pattern="ConnectWise.*Automate|LabTech|LTService"; Risk="MEDIUM"}
-            @{Name="ConnectWise Continuum"; Pattern="Continuum.*Agent|ConnectWise.*Continuum"; Risk="MEDIUM"}
-            
-            # Major RMM Platforms
-            @{Name="NinjaOne RMM"; Pattern="NinjaOne|NinjaRMM|NinjaAgent"; Risk="MEDIUM"}
-            @{Name="Kaseya VSA"; Pattern="Kaseya|AgentMon"; Risk="MEDIUM"}
-            @{Name="Datto RMM"; Pattern="Datto.*RMM|CentraStage|Autotask"; Risk="MEDIUM"}
-            @{Name="Atera"; Pattern="Atera.*Agent"; Risk="MEDIUM"}
-            @{Name="Syncro"; Pattern="Syncro.*Agent|RepairShopr"; Risk="MEDIUM"}
-            @{Name="Pulseway"; Pattern="Pulseway"; Risk="MEDIUM"}
-            @{Name="N-able RMM"; Pattern="N-able|SolarWinds.*RMM|N-central"; Risk="MEDIUM"}
-            @{Name="ManageEngine"; Pattern="ManageEngine|Desktop.*Central"; Risk="MEDIUM"}
-            
-            # Network Monitoring
-            @{Name="Auvik"; Pattern="Auvik"; Risk="MEDIUM"}
-            @{Name="PRTG"; Pattern="PRTG"; Risk="MEDIUM"}
-            @{Name="WhatsUp Gold"; Pattern="WhatsUp.*Gold"; Risk="MEDIUM"}
-            
-            # Security/Endpoint Management
-            @{Name="CrowdStrike"; Pattern="CrowdStrike|Falcon"; Risk="MEDIUM"}
-            @{Name="SentinelOne"; Pattern="SentinelOne|Sentinel.*Agent"; Risk="MEDIUM"}
-            @{Name="Huntress"; Pattern="Huntress"; Risk="MEDIUM"}
-            @{Name="Bitdefender GravityZone"; Pattern="Bitdefender.*Gravity|GravityZone"; Risk="MEDIUM"}
-            
-            # Legacy/Other
-            @{Name="LogMeIn Central"; Pattern="LogMeIn.*Central"; Risk="MEDIUM"}
-            @{Name="GoToAssist Corporate"; Pattern="GoToAssist.*Corporate"; Risk="MEDIUM"}
-            @{Name="Bomgar/BeyondTrust"; Pattern="Bomgar|BeyondTrust.*Remote"; Risk="MEDIUM"}
+
+        # RMM/Monitoring software detection - simple prefix matching
+        $RMMPrefixes = @(
+            "ConnectWise Automate",
+            "ConnectWise Continuum",
+            "NinjaOne",
+            "NinjaRMM",
+            "Kaseya",
+            "Datto RMM",
+            "CentraStage",
+            "Atera Agent",
+            "Syncro Agent",
+            "Pulseway",
+            "N-able",
+            "N-central",
+            "SolarWinds RMM",
+            "ManageEngine",
+            "Desktop Central",
+            "Auvik",
+            "PRTG",
+            "WhatsUp Gold",
+            "CrowdStrike",
+            "Falcon Sensor",
+            "SentinelOne",
+            "Huntress",
+            "Bitdefender GravityZone",
+            "LogMeIn Central",
+            "GoToAssist Corporate"
         )
-        
+
         $DetectedRMM = @()
-        foreach ($RMMApp in $RMMSoftware) {
-            $Found = $AllSoftware | Where-Object { $_.DisplayName -match $RMMApp.Pattern }
+        foreach ($Prefix in $RMMPrefixes) {
+            $Found = $AllSoftware | Where-Object { $_.DisplayName -like "$Prefix*" }
             foreach ($App in $Found) {
-                $InstallDate = if ($App.InstallDate) { 
+                $InstallDate = if ($App.InstallDate) {
                     try { [datetime]::ParseExact($App.InstallDate, "yyyyMMdd", $null) } catch { $null }
                 } else { $null }
-                
+
                 $DetectedRMM += [PSCustomObject]@{
-                    Name = $RMMApp.Name
                     DisplayName = $App.DisplayName
                     Version = $App.DisplayVersion
                     InstallDate = $InstallDate
-                    Risk = $RMMApp.Risk
                 }
-                
+
                 $Results += [PSCustomObject]@{
                     Category = "Software"
                     Item = "RMM/Monitoring Software"
                     Value = "$($App.DisplayName) - $($App.DisplayVersion)"
                     Details = "RMM/monitoring software detected. Install date: $(if ($InstallDate) { $InstallDate.ToString('yyyy-MM-dd') } else { 'Unknown' }). Review management authorization and security controls."
-                    RiskLevel = $RMMApp.Risk
+                    RiskLevel = "MEDIUM"
                     Recommendation = "Document and authorize remote monitoring tools"
                 }
             }
         }
-        
+
         if ($DetectedRMM.Count -gt 0) {
-            Write-LogMessage "WARN" "RMM/monitoring software detected: $(($DetectedRMM | Select-Object -ExpandProperty Name) -join ', ')" "SOFTWARE"
-            
-            # Add to raw data collection
+            Write-LogMessage "WARN" "RMM/monitoring software detected: $(($DetectedRMM | Select-Object -ExpandProperty DisplayName) -join ', ')" "SOFTWARE"
             Add-RawDataCollection -CollectionName "RMMSoftware" -Data $DetectedRMM
         } else {
             Write-LogMessage "INFO" "No RMM/monitoring software detected" "SOFTWARE"
         }
-        
+
         # Add all software to raw data collection for detailed export
         $SoftwareList = @()
         foreach ($App in $AllSoftware) {
-            $InstallDate = if ($App.InstallDate) { 
+            $InstallDate = if ($App.InstallDate) {
                 try { [datetime]::ParseExact($App.InstallDate, "yyyyMMdd", $null) } catch { $null }
             } else { $null }
-            
+
             $SoftwareList += [PSCustomObject]@{
                 Name = $App.DisplayName
                 Version = $App.DisplayVersion
@@ -2842,16 +2933,15 @@ function Get-SoftwareInventory {
                 EstimatedSize = $App.EstimatedSize
             }
         }
-        
-        # Add to global raw data collection
+
         Add-RawDataCollection -CollectionName "InstalledSoftware" -Data $SoftwareList
-        
+
         # Add a summary finding with software categories
         $Browsers = $AllSoftware | Where-Object { $_.DisplayName -match "Chrome|Firefox|Edge|Safari" }
         $DevTools = $AllSoftware | Where-Object { $_.DisplayName -match "Visual Studio|Git|Docker|Node" }
         $Office = $AllSoftware | Where-Object { $_.DisplayName -match "Office|Word|Excel|PowerPoint" }
         $Security = $AllSoftware | Where-Object { $_.DisplayName -match "Antivirus|McAfee|Norton|Symantec|Defender" }
-        
+
         $Results += [PSCustomObject]@{
             Category = "Software"
             Item = "Software Categories"
@@ -2860,7 +2950,7 @@ function Get-SoftwareInventory {
             RiskLevel = "INFO"
             Recommendation = ""
         }
-        
+
         Write-LogMessage "SUCCESS" "Software inventory completed - $($AllSoftware.Count) programs found" "SOFTWARE"
         return $Results
     }
@@ -2869,6 +2959,7 @@ function Get-SoftwareInventory {
         return @()
     }
 }
+
 
 # [SECURITY] Get-PatchStatus - Windows Update and patch status
 # Dependencies: Write-LogMessage
@@ -3261,293 +3352,178 @@ function Get-SecuritySettings {
     <#
     .SYNOPSIS
         Analyzes critical Windows security settings and configurations
-        
+
     .DESCRIPTION
         Performs comprehensive security settings analysis including:
-        - Windows Defender antivirus status and configuration
-        - Third-party antivirus detection via Security Center
+        - Antivirus detection via process signature matching (config-driven)
+        - Windows Defender status and configuration details
         - Windows Firewall profile status (Domain, Private, Public)
         - User Account Control (UAC) configuration
-        - Real-time protection and security service status
-        
+        - BitLocker encryption status and key escrow
+
     .OUTPUTS
         Array of PSCustomObjects with Category, Item, Value, Details, RiskLevel, Recommendation
-        
+
     .NOTES
-        Requires: Write-LogMessage function
+        Requires: Write-LogMessage function, antivirus_signatures in config
         Permissions: Standard user rights for most checks, admin rights for comprehensive analysis
-        Dependencies: Windows Defender, Security Center WMI classes
+        Dependencies: Config file with antivirus process signatures
     #>
     
     Write-LogMessage "INFO" "Analyzing security settings..." "SECURITY"
-    
+
     try {
         $Results = @()
-        
-        # Enhanced Antivirus Detection System
+
+        # Antivirus Detection System
         $DetectedAV = @()
-        $ActiveAV = @()
-        
-        # Function to decode Security Center product state
-        function Get-AVProductState($ProductState) {
-            # Product state is a complex bitmask
-            # Based on research: https://bit.ly/3sKzQbU
-            $State = @{
-                Enabled = ($ProductState -band 0x1000) -ne 0
-                UpToDate = ($ProductState -band 0x10) -eq 0
-                RealTime = ($ProductState -band 0x100) -ne 0
-                StateHex = "0x{0:X}" -f $ProductState
-            }
-            return $State
-        }
-        
-        # Method 1: Windows Defender via PowerShell (most reliable for Defender)
+
+        # Windows Defender - Use direct PowerShell query (built into Windows 10/11)
         try {
             $DefenderStatus = Get-MpComputerStatus -ErrorAction Stop
-            $DefenderInfo = [PSCustomObject]@{
-                Name = "Windows Defender"
-                Enabled = $DefenderStatus.AntivirusEnabled
-                RealTime = $DefenderStatus.RealTimeProtectionEnabled
-                UpToDate = $DefenderStatus.AntivirusSignatureAge -lt 7
-                LastUpdate = $DefenderStatus.AntivirusSignatureLastUpdated
-                Method = "PowerShell API"
-                ProductState = "N/A"
-            }
-            $DetectedAV += $DefenderInfo
-            if ($DefenderInfo.Enabled) { $ActiveAV += $DefenderInfo }
-            
-            Write-LogMessage "INFO" "Windows Defender: Enabled=$($DefenderInfo.Enabled), RealTime=$($DefenderInfo.RealTime)" "SECURITY"
-        }
-        catch {
-            Write-LogMessage "WARN" "Could not query Windows Defender via PowerShell: $($_.Exception.Message)" "SECURITY"
-        }
-        
-        # Method 2: Security Center WMI (comprehensive for all AV products)
-        $SecurityCenterAVs = @()
-        try {
-            $SecurityCenterAV = Get-CimInstance -Namespace "root\SecurityCenter2" -ClassName "AntiVirusProduct" -ErrorAction Stop
-            
-            # Group by displayName to handle duplicates
-            $GroupedAV = $SecurityCenterAV | Group-Object displayName
-            
-            foreach ($AVGroup in $GroupedAV) {
-                $AV = $AVGroup.Group[0]  # Take first instance of each unique product
-                $State = Get-AVProductState -ProductState $AV.productState
-                
-                $AVInfo = [PSCustomObject]@{
-                    Name = $AV.displayName
-                    Enabled = $State.Enabled
-                    RealTime = $State.RealTime
-                    UpToDate = $State.UpToDate
-                    ProductState = $State.StateHex
-                    ExecutablePath = $AV.pathToSignedProductExe
-                    Method = "Security Center"
-                    InstanceGuid = $AV.instanceGuid
-                    InstanceCount = $AVGroup.Count
-                }
-                
-                $SecurityCenterAVs += $AVInfo
-                
-                # Avoid duplicate Defender entries
-                if ($AV.displayName -notlike "*Windows Defender*" -or $DetectedAV.Count -eq 0) {
-                    $DetectedAV += $AVInfo
-                    if ($State.Enabled) { $ActiveAV += $AVInfo }
-                }
-            }
-            
-            # Log unique Security Center products only
-            if ($SecurityCenterAVs.Count -gt 0) {
-                Write-LogMessage "INFO" "Security Center detected $($SecurityCenterAVs.Count) unique AV products:" "SECURITY"
-                foreach ($AV in $SecurityCenterAVs) {
-                    $InstanceText = if ($AV.InstanceCount -gt 1) { " ($($AV.InstanceCount) instances)" } else { "" }
-                    Write-LogMessage "INFO" "  - $($AV.Name): Enabled=$($AV.Enabled), State=$($AV.ProductState)$InstanceText" "SECURITY"
+            if ($DefenderStatus.AntivirusEnabled) {
+                Write-LogMessage "INFO" "Windows Defender detected: RealTime=$($DefenderStatus.RealTimeProtectionEnabled), Signatures=$($DefenderStatus.AntivirusSignatureAge) days old" "SECURITY"
+
+                $DetectedAV += [PSCustomObject]@{
+                    Name = "Windows Defender"
+                    DetectionMethod = "Get-MpComputerStatus"
+                    RealTimeProtection = $DefenderStatus.RealTimeProtectionEnabled
+                    SignatureAge = $DefenderStatus.AntivirusSignatureAge
+                    LastUpdate = $DefenderStatus.AntivirusSignatureLastUpdated
                 }
             }
         }
         catch {
-            Write-LogMessage "WARN" "Could not query Security Center WMI: $($_.Exception.Message)" "SECURITY"
+            Write-LogMessage "DEBUG" "Get-MpComputerStatus not available or Defender not installed: $($_.Exception.Message)" "SECURITY"
         }
-        
-        # Method 3: Process detection as supplemental verification only
-        # Only run if Security Center found limited results or to validate findings
-        $RunProcessDetection = $SecurityCenterAVs.Count -eq 0 -or $SecurityCenterAVs.Count -eq 1
-        
-        if ($RunProcessDetection) {
-            Write-LogMessage "INFO" "Running supplemental process-based AV detection..." "SECURITY"
-            
-            $AVProcessSignatures = @{
-                # Enterprise EDR/AV Solutions
-                "SentinelOne" = @("SentinelAgent", "SentinelRemediation", "SentinelCtl")
-                "CrowdStrike" = @("CSAgent", "CSFalconService", "CSFalconContainer")
-                "CarbonBlack" = @("cb", "CarbonBlack", "RepMgr", "RepUtils", "RepUx")
-                "Cortex XDR" = @("cytool", "cyserver", "CyveraService")
-                
-                # Traditional AV Solutions  
-                "McAfee" = @("mcshield", "mfemms", "mfevtps", "McCSPServiceHost", "masvc")
-                "Symantec/Norton" = @("ccSvcHst", "NortonSecurity", "navapsvc", "rtvscan", "savroam")
-                "Trend Micro" = @("tmbmsrv", "tmproxy", "tmlisten", "PccNTMon", "TmListen")
-                "Kaspersky" = @("avp", "avpui", "klnagent", "ksde", "kavfs")
-                "Bitdefender" = @("bdagent", "vsservppl", "vsserv", "updatesrv", "bdredline")
-                "ESET" = @("epag", "epwd", "ekrn", "egui", "efsw")
-                "Sophos" = @("SophosAgent", "savservice", "SophosFS", "SophosHealth")
-                "F-Secure" = @("fsm32", "fsgk32", "fsav32", "fshoster", "FSMA")
-                "Avast" = @("avastui", "avastsvc", "avastbrowser", "wsc_proxy")
-                "AVG" = @("avguard", "avgui", "avgrsa", "avgfws", "avgcsrvx")
-                "Webroot" = @("WRSA", "WRData", "WRCore", "WRConsumerService")
-                "Malwarebytes" = @("mbamservice", "mbamtray", "MBAMProtector", "mbae64")
+
+        # Third-party AV detection via process matching from config
+        if (Get-Variable -Name "Config" -Scope Global -ErrorAction SilentlyContinue) {
+            $ConfigSigs = $null
+
+            # Try inline signatures first (web version), then fall back to file
+            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures) {
+                $ConfigSigs = $Global:Config.settings.antivirus_signatures
+                Write-LogMessage "INFO" "Using inline AV signatures from config" "SECURITY"
             }
-            
-            try {
+            elseif ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures_file) {
+                $AVSigFile = $Global:Config.settings.antivirus_signatures_file
+                if (Test-Path $AVSigFile) {
+                    try {
+                        $AVSigConfig = Get-Content $AVSigFile | ConvertFrom-Json
+                        $ConfigSigs = $AVSigConfig.antivirus_signatures
+                        Write-LogMessage "INFO" "Loaded AV signatures from $AVSigFile" "SECURITY"
+                    }
+                    catch {
+                        Write-LogMessage "WARN" "Failed to load AV signatures from $AVSigFile" "SECURITY"
+                    }
+                }
+            }
+
+            if ($ConfigSigs) {
+                # Get running processes once for matching
                 $RunningProcesses = Get-Process | Select-Object ProcessName
-                $DetectedByProcess = @()
-                
-                foreach ($AVName in $AVProcessSignatures.Keys) {
-                    $Processes = $AVProcessSignatures[$AVName]
+
+                # Count signatures for logging
+                $SigCount = ($ConfigSigs.PSObject.Properties | Measure-Object).Count
+                Write-LogMessage "INFO" "Checking $SigCount AV signatures from config..." "SECURITY"
+
+                # Iterate through PSCustomObject properties directly (no conversion needed)
+                foreach ($Property in $ConfigSigs.PSObject.Properties) {
+                    $AVName = $Property.Name
+                    $ProcessSignatures = $Property.Value
+
+                    # Skip Windows Defender since we detect it directly
+                    if ($AVName -eq "Windows Defender") {
+                        continue
+                    }
+
                     $Found = $false
-                    
-                    foreach ($ProcessPattern in $Processes) {
-                        if ($RunningProcesses | Where-Object { $_.ProcessName -like "*$ProcessPattern*" }) {
+                    foreach ($ProcessPattern in $ProcessSignatures) {
+                        $MatchedProcesses = $RunningProcesses | Where-Object { $_.ProcessName -like "*$ProcessPattern*" }
+                        if ($MatchedProcesses) {
+                            Write-LogMessage "INFO" "Matched process pattern '$ProcessPattern' for $AVName" "SECURITY"
                             $Found = $true
                             break
                         }
                     }
-                    
+
                     if ($Found) {
-                        $DetectedByProcess += $AVName
+                        $DetectedAV += [PSCustomObject]@{
+                            Name = $AVName
+                            DetectionMethod = "Process Signature"
+                            ProcessSignature = $ProcessSignatures -join ", "
+                        }
+
+                        Write-LogMessage "INFO" "Detected third-party AV: $AVName" "SECURITY"
                     }
                 }
-                
-                if ($DetectedByProcess.Count -gt 0) {
-                    Write-LogMessage "INFO" "Process verification found: $($DetectedByProcess -join ', ')" "SECURITY"
-                    
-                    # Report process-detected AV that wasn't found via Security Center
-                    foreach ($ProcessAV in $DetectedByProcess) {
-                        $AlreadyDetected = $DetectedAV | Where-Object { $_.Name -like "*$ProcessAV*" }
-                        if (-not $AlreadyDetected) {
-                            $Results += [PSCustomObject]@{
-                                Category = "Security"
-                                Item = "Antivirus Process Detected"
-                                Value = "$ProcessAV - Process Running"
-                                Details = "AV processes detected but not registered with Security Center. May indicate configuration issue or secondary AV installation."
-                                RiskLevel = "MEDIUM"
-                                Recommendation = "Verify antivirus registration and avoid conflicting AV products"
-                            }
-                            
-                            Write-LogMessage "WARN" "AV process detected but not in Security Center: $ProcessAV" "SECURITY"
+            }
+        }
+
+        # Generate results from detected AV products
+        if ($DetectedAV.Count -gt 0) {
+            foreach ($AV in $DetectedAV) {
+                $Details = "Detected via $($AV.DetectionMethod)"
+                $RiskLevel = "LOW"
+
+                # Windows Defender specific details
+                if ($AV.Name -eq "Windows Defender") {
+                    if ($AV.RealTimeProtection -ne $null) {
+                        $Details += ", Real-time protection: $($AV.RealTimeProtection)"
+                        if (-not $AV.RealTimeProtection) {
+                            $RiskLevel = "HIGH"
                         }
                     }
-                } else {
-                    Write-LogMessage "INFO" "Process verification: No additional AV products found" "SECURITY"
-                }
-            }
-            catch {
-                Write-LogMessage "WARN" "Could not run process verification: $($_.Exception.Message)" "SECURITY"
-            }
-        } else {
-            Write-LogMessage "INFO" "Skipping process detection - Security Center found sufficient AV products ($($SecurityCenterAVs.Count))" "SECURITY"
-        }
-        
-        # Generate consolidated results with enhanced multiple AV reporting
-        if ($DetectedAV.Count -gt 0) {
-            # Group by product name to handle multiple instances cleanly
-            $GroupedDetectedAV = $DetectedAV | Group-Object Name
-            
-            foreach ($AVGroup in $GroupedDetectedAV) {
-                $AV = $AVGroup.Group[0]  # Take primary instance for display
-                $InstanceCount = $AVGroup.Count
-                
-                $StatusText = if ($AV.Enabled) { "Active" } else { "Installed but Inactive" }
-                $UpdateStatus = if ($AV.UpToDate) { "Up to date" } else { "Outdated signatures" }
-                
-                $Details = "Status: $StatusText"
-                if ($AV.RealTime -ne $null) { $Details += ", Real-time: $($AV.RealTime)" }
-                if ($AV.UpToDate -ne $null) { $Details += ", $UpdateStatus" }
-                if ($AV.LastUpdate) { $Details += ", Last update: $($AV.LastUpdate)" }
-                if ($AV.ProductState -ne "N/A") { $Details += " (State: $($AV.ProductState))" }
-                if ($InstanceCount -gt 1) { $Details += ", Multiple instances detected: $InstanceCount" }
-                
-                $RiskLevel = "LOW"
-                $Recommendation = ""
-                
-                if (-not $AV.Enabled) {
-                    # Check if this is Windows Defender and other AV products are active
-                    if ($AV.Name -match "Windows Defender" -and $ActiveAV.Count -gt 0) {
-                        $RiskLevel = "LOW" 
-                        $Recommendation = "Windows Defender properly disabled - other active AV products detected"
-                    } else {
-                        $RiskLevel = "HIGH"
-                        $Recommendation = "Antivirus must be enabled and active"
+                    if ($AV.SignatureAge -ne $null) {
+                        $Details += ", Signature age: $($AV.SignatureAge) days"
+                        if ($AV.SignatureAge -gt 7) {
+                            $RiskLevel = "MEDIUM"
+                        }
                     }
-                } elseif ($AV.UpToDate -eq $false) {
-                    $RiskLevel = "MEDIUM"
-                    $Recommendation = "Antivirus signatures must be current"
-                } elseif ($InstanceCount -gt 1) {
-                    $RiskLevel = "MEDIUM"
-                    $Recommendation = "Multiple instances may indicate conflicting installations"
+                    if ($AV.LastUpdate) {
+                        $Details += ", Last update: $($AV.LastUpdate)"
+                    }
                 }
-                
-                $DisplayName = if ($InstanceCount -gt 1) { "$($AV.Name) (x$InstanceCount)" } else { $AV.Name }
-                
+
                 $Results += [PSCustomObject]@{
                     Category = "Security"
                     Item = "Antivirus Product"
-                    Value = "$DisplayName - $StatusText"
+                    Value = "$($AV.Name) - Active"
                     Details = $Details
                     RiskLevel = $RiskLevel
                     Recommendation = ""
                 }
             }
-            
-            # Enhanced summary with multiple product analysis
-            $UniqueActiveProducts = ($ActiveAV | Group-Object Name).Count
-            $UniqueDetectedProducts = $GroupedDetectedAV.Count
-            $TotalInstances = $DetectedAV.Count
-            
-            $ActiveProductNames = ($ActiveAV | Group-Object Name | Select-Object -ExpandProperty Name) -join ', '
-            $AllProductNames = ($GroupedDetectedAV | Select-Object -ExpandProperty Name) -join ', '
-            
-            $SummaryDetails = "Active products: $ActiveProductNames"
-            if ($TotalInstances -gt $UniqueDetectedProducts) {
-                $SummaryDetails += ". Multiple instances detected ($TotalInstances total installations of $UniqueDetectedProducts products)"
-            }
-            
-            $SummaryRisk = "LOW"
-            $SummaryRecommendation = ""
-            
-            if ($UniqueActiveProducts -eq 0) {
-                $SummaryRisk = "HIGH"
-                $SummaryRecommendation = "No active antivirus protection"
-            } elseif ($UniqueActiveProducts -gt 1) {
-                $SummaryRisk = "MEDIUM"
-                $SummaryRecommendation = "Multiple active AV products may cause conflicts - review configuration"
-            } elseif ($TotalInstances -gt $UniqueDetectedProducts) {
-                $SummaryRisk = "MEDIUM"
-                $SummaryRecommendation = "Multiple instances of same products detected - review for cleanup"
-            }
-            
+
+            # Summary
+            $DetectedNames = ($DetectedAV | Select-Object -ExpandProperty Name) -join ', '
+            $SummaryRisk = if ($DetectedAV.Count -gt 1) { "MEDIUM" } else { "LOW" }
+            $SummaryRecommendation = if ($DetectedAV.Count -gt 1) { "Multiple AV products may cause conflicts - review configuration" } else { "" }
+
             $Results += [PSCustomObject]@{
                 Category = "Security"
                 Item = "Antivirus Protection Summary"
-                Value = "$UniqueActiveProducts active of $UniqueDetectedProducts products"
-                Details = $SummaryDetails
+                Value = "$($DetectedAV.Count) product(s) detected"
+                Details = "Active products: $DetectedNames"
                 RiskLevel = $SummaryRisk
-                Recommendation = ""
+                Recommendation = $SummaryRecommendation
             }
-            
-            Write-LogMessage "SUCCESS" "Enhanced AV detection: $UniqueActiveProducts unique active products, $UniqueDetectedProducts total products, $TotalInstances instances" "SECURITY"
+
+            Write-LogMessage "SUCCESS" "AV detection: $($DetectedAV.Count) product(s) - $DetectedNames" "SECURITY"
         } else {
             $Results += [PSCustomObject]@{
                 Category = "Security"
                 Item = "Antivirus Protection"
                 Value = "None detected"
-                Details = "No antivirus software detected via Security Center, Defender API, or process analysis"
+                Details = "No antivirus processes detected. Either no AV is installed or signatures need updating."
                 RiskLevel = "HIGH"
-                Recommendation = "Antivirus protection required"
+                Recommendation = "Install and configure antivirus protection"
             }
-            
-            Write-LogMessage "ERROR" "No antivirus protection detected by enhanced detection methods" "SECURITY"
+
+            Write-LogMessage "WARN" "No antivirus products detected" "SECURITY"
         }
-        
+
         # Add detected AV products to raw data collection
         Add-RawDataCollection -CollectionName "AntivirusProducts" -Data $DetectedAV
         
@@ -4572,15 +4548,19 @@ function Get-NetworkAnalysis {
         
         # Get network adapters
         try {
-            $NetworkAdapters = Get-CimInstance -ClassName Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -ne $null }
-            $ActiveAdapters = $NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 2 }
-            $DisconnectedAdapters = $NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 7 }
-            
+            $NetworkAdapters = @(Get-CimInstance -ClassName Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -ne $null })
+            $ActiveAdapters = @($NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 2 })
+            $DisconnectedAdapters = @($NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 7 })
+
+            $ActiveCount = $ActiveAdapters.Count
+            $DisconnectedCount = $DisconnectedAdapters.Count
+            $TotalCount = $NetworkAdapters.Count
+
             $Results += [PSCustomObject]@{
                 Category = "Network"
                 Item = "Network Adapters"
-                Value = "$($ActiveAdapters.Count) active, $($DisconnectedAdapters.Count) disconnected"
-                Details = "Total adapters: $($NetworkAdapters.Count)"
+                Value = "$ActiveCount active, $DisconnectedCount disconnected"
+                Details = "Total adapters: $TotalCount"
                 RiskLevel = "INFO"
                 Recommendation = ""
             }
@@ -4602,9 +4582,7 @@ function Get-NetworkAnalysis {
                 
                 Write-LogMessage "INFO" "Active adapter: $ConnectionName - $Speed" "NETWORK"
             }
-            
-            $ActiveCount = if ($ActiveAdapters) { $ActiveAdapters.Count } else { 0 }
-            $TotalCount = if ($NetworkAdapters) { $NetworkAdapters.Count } else { 0 }
+
             Write-LogMessage "INFO" "Network adapters: $ActiveCount active, $TotalCount total" "NETWORK"
         }
         catch {
@@ -6874,8 +6852,8 @@ function Get-PrinterAnalysis {
         
         # Get installed printers
         try {
-            $Printers = Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue
-            $PrinterCount = if ($Printers) { $Printers.Count } else { 0 }
+            $Printers = @(Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue)
+            $PrinterCount = $Printers.Count
             
             if ($PrinterCount -eq 0) {
                 $Results += [PSCustomObject]@{
@@ -7299,9 +7277,12 @@ function Get-EventLogAnalysis {
         # Check for Windows Defender events (performance limited)
         try {
             $DefenderEvents = Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Windows Defender/Operational"; StartTime=$AnalysisStartTime} -MaxEvents $MaxEventsPerQuery -ErrorAction SilentlyContinue
-            
+
             if ($DefenderEvents) {
-                $ThreatEvents = $DefenderEvents | Where-Object { $_.Id -in @(1006, 1007, 1008, 1009, 1116, 1117) }
+                # Only count actual threat detections, not historical management events
+                # 1116 = Malware detected, 1117 = Action taken to protect system
+                # Exclude: 1006 (history changed), 1007 (generic action), 1008 (history deleted), 1009 (restored from quarantine)
+                $ThreatEvents = $DefenderEvents | Where-Object { $_.Id -in @(1116, 1117) }
                 $ScanEvents = $DefenderEvents | Where-Object { $_.Id -in @(1000, 1001, 1002) }
                 
                 # Use dynamic timeframe for display
@@ -8379,17 +8360,8 @@ function Start-ServerAudit {
         $RiskCounts = $AllResults | Group-Object RiskLevel | ForEach-Object { "$($_.Name): $($_.Count)" }
         Write-LogMessage "INFO" "Risk summary - $($RiskCounts -join ', ')" "SUMMARY"
 
-        # Load configuration for export
-        $ConfigFile = Join-Path $ConfigPath "server-audit-config.json"
-        $Config = $null
-        if (Test-Path $ConfigFile) {
-            try {
-                $Config = Get-Content $ConfigFile | ConvertFrom-Json
-            } catch {
-                Write-LogMessage "WARN" "Failed to load config for export, using defaults" "MAIN"
-            }
-        }
-
+        # Configuration already loaded from embedded config
+        
         # Export results
         Export-AuditResults -Results $AllResults -Config $Config -IsServer -OutputPath $Script:OutputPath
     }
@@ -8447,7 +8419,7 @@ try {
     }
 
     # Initialize logging (basic initialization before core modules load)
-    $LogDirectory = Join-Path $OutputPath "logs"
+    $LogDirectory = Join-Path $Script:OutputPath "logs"
     if (-not (Test-Path $LogDirectory)) {
         New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
     }
@@ -8476,6 +8448,22 @@ try {
     Write-LogMessage "INFO" "Server: $($env:COMPUTERNAME)" "MAIN"
     Write-LogMessage "INFO" "OS: $($OSInfo.Caption) $($OSInfo.Version)" "MAIN"
     Write-LogMessage "INFO" "Output directory: $OutputPath" "MAIN"
+
+    # Load configuration as global variable for modules to access
+    $ConfigFile = Join-Path $ConfigPath "server-audit-config.json"
+    if (Test-Path $ConfigFile) {
+        try {
+            $Global:Config = Get-Content $ConfigFile | ConvertFrom-Json
+            Write-LogMessage "SUCCESS" "Loaded configuration as global: $ConfigFile" "CONFIG"
+        }
+        catch {
+            Write-LogMessage "WARN" "Failed to load config: $($_.Exception.Message)" "CONFIG"
+            $Global:Config = $null
+        }
+    } else {
+        Write-LogMessage "WARN" "Config file not found: $ConfigFile" "CONFIG"
+        $Global:Config = $null
+    }
 
     # Start the audit
     $AuditResults = Start-ServerAudit

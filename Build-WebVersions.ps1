@@ -94,7 +94,27 @@ function Build-WindowsWebVersion {
     $ConfigFile = $Manifest.build_settings.windows.config_files.$($Type.ToLower())
     $ConfigContent = ""
     if (Test-Path $ConfigFile) {
-        $ConfigContent = Get-Content $ConfigFile -Raw
+        $Config = Get-Content $ConfigFile | ConvertFrom-Json
+
+        # If config references external AV signatures file, merge it in
+        if ($Config.settings -and $Config.settings.antivirus_signatures_file) {
+            $AVSigFile = $Config.settings.antivirus_signatures_file
+            if (Test-Path $AVSigFile) {
+                try {
+                    $AVSigConfig = Get-Content $AVSigFile | ConvertFrom-Json
+                    # Add AV signatures directly to config settings
+                    $Config.settings | Add-Member -NotePropertyName "antivirus_signatures" -NotePropertyValue $AVSigConfig.antivirus_signatures -Force
+                    # Remove the file reference since it's now embedded
+                    $Config.settings.PSObject.Properties.Remove("antivirus_signatures_file")
+                    Write-Host "  → Merged AV signatures from $AVSigFile into config" -ForegroundColor Cyan
+                }
+                catch {
+                    Write-Warning "Failed to load AV signatures from $AVSigFile"
+                }
+            }
+        }
+
+        $ConfigContent = $Config | ConvertTo-Json -Depth 10
         Write-Host "  → Embedded configuration from $ConfigFile" -ForegroundColor Cyan
     }
 

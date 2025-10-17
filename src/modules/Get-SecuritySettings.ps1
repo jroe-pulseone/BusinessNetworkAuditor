@@ -52,9 +52,14 @@ function Get-SecuritySettings {
 
         # Third-party AV detection via process matching from config
         if (Get-Variable -Name "Config" -Scope Global -ErrorAction SilentlyContinue) {
-            # Load AV signatures from separate file if specified
             $ConfigSigs = $null
-            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures_file) {
+
+            # Try inline signatures first (web version), then fall back to file
+            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures) {
+                $ConfigSigs = $Global:Config.settings.antivirus_signatures
+                Write-LogMessage "INFO" "Using inline AV signatures from config" "SECURITY"
+            }
+            elseif ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures_file) {
                 $AVSigFile = $Global:Config.settings.antivirus_signatures_file
                 if (Test-Path $AVSigFile) {
                     try {
