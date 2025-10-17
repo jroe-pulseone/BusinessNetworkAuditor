@@ -7,6 +7,7 @@ output/*.md
 output/*.html
 output/*.pdf
 output/*.log
+output/**/*.log
 
 # Temporary files
 *.tmp
