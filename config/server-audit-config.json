@@ -107,6 +107,7 @@
             "workstation_max_events": 1000,
             "domain_controller_analysis_days": 30,
             "domain_controller_max_events": 500
-        }
+        },
+        "antivirus_signatures_file": "config/antivirus-signatures.json"
     }
 }

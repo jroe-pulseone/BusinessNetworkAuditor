@@ -80,24 +80,6 @@
             "server_analysis_days": 3,
             "server_max_events": 500
         },
-        "antivirus_signatures": {
-            "SentinelOne": ["SentinelAgent", "SentinelRemediation", "SentinelCtl"],
-            "CrowdStrike": ["CSAgent", "CSFalconService", "CSFalconContainer"],
-            "CarbonBlack": ["cb", "CarbonBlack", "RepMgr", "RepUtils", "RepUx"],
-            "Cortex XDR": ["cytool", "cyserver", "CyveraService"],
-            "McAfee": ["mcshield", "mfemms", "mfevtps", "McCSPServiceHost", "masvc"],
-            "Symantec": ["ccSvcHst", "NortonSecurity", "navapsvc", "rtvscan", "savroam"],
-            "Trend Micro": ["tmbmsrv", "tmproxy", "tmlisten", "PccNTMon", "TmListen"],
-            "Kaspersky": ["avp", "avpui", "klnagent", "ksde", "kavfs"],
-            "Bitdefender": ["bdagent", "vsservppl", "vsserv", "updatesrv", "bdredline"],
-            "ESET": ["epag", "epwd", "ekrn", "egui", "efsw"],
-            "Sophos": ["SophosAgent", "savservice", "SophosFS", "SophosHealth"],
-            "F-Secure": ["fsm32", "fsgk32", "fsav32", "fshoster", "FSMA"],
-            "Avast": ["avastui", "avastsvc", "avastbrowser", "wsc_proxy"],
-            "AVG": ["avguard", "avgui", "avgrsa", "avgfws", "avgcsrvx"],
-            "Webroot": ["WRSA", "WRData", "WRCore", "WRConsumerService"],
-            "Malwarebytes": ["mbamservice", "mbamtray", "MBAMProtector", "mbae64"],
-            "Windows Defender": ["MsMpEng", "NisSrv", "SecurityHealthService"]
-        }
+        "antivirus_signatures_file": "config/antivirus-signatures.json"
     }
 }

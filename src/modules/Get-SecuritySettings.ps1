@@ -52,9 +52,23 @@ function Get-SecuritySettings {
 
         # Third-party AV detection via process matching from config
         if (Get-Variable -Name "Config" -Scope Global -ErrorAction SilentlyContinue) {
-            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures) {
-                $ConfigSigs = $Global:Config.settings.antivirus_signatures
+            # Load AV signatures from separate file if specified
+            $ConfigSigs = $null
+            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures_file) {
+                $AVSigFile = $Global:Config.settings.antivirus_signatures_file
+                if (Test-Path $AVSigFile) {
+                    try {
+                        $AVSigConfig = Get-Content $AVSigFile | ConvertFrom-Json
+                        $ConfigSigs = $AVSigConfig.antivirus_signatures
+                        Write-LogMessage "INFO" "Loaded AV signatures from $AVSigFile" "SECURITY"
+                    }
+                    catch {
+                        Write-LogMessage "WARN" "Failed to load AV signatures from $AVSigFile" "SECURITY"
+                    }
+                }
+            }
 
+            if ($ConfigSigs) {
                 # Get running processes once for matching
                 $RunningProcesses = Get-Process | Select-Object ProcessName
 

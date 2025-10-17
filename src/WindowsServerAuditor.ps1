@@ -15,6 +15,7 @@ $Script:LogFile = ""
 $Script:StartTime = Get-Date
 $Script:ComputerName = $env:COMPUTERNAME
 $Script:BaseFileName = "${ComputerName}_$($StartTime.ToString('yyyyMMdd_HHmmss'))"
+$Script:OutputPath = $OutputPath  # Store parameter in script scope
 
 # Module loading system
 function Import-AuditModule {
@@ -421,7 +422,7 @@ try {
     }
 
     # Initialize logging (basic initialization before core modules load)
-    $LogDirectory = Join-Path $OutputPath "logs"
+    $LogDirectory = Join-Path $Script:OutputPath "logs"
     if (-not (Test-Path $LogDirectory)) {
         New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
     }
@@ -458,6 +459,22 @@ try {
     Write-LogMessage "INFO" "Server: $($env:COMPUTERNAME)" "MAIN"
     Write-LogMessage "INFO" "OS: $($OSInfo.Caption) $($OSInfo.Version)" "MAIN"
     Write-LogMessage "INFO" "Output directory: $OutputPath" "MAIN"
+
+    # Load configuration as global variable for modules to access
+    $ConfigFile = Join-Path $ConfigPath "server-audit-config.json"
+    if (Test-Path $ConfigFile) {
+        try {
+            $Global:Config = Get-Content $ConfigFile | ConvertFrom-Json
+            Write-LogMessage "SUCCESS" "Loaded configuration as global: $ConfigFile" "CONFIG"
+        }
+        catch {
+            Write-LogMessage "WARN" "Failed to load config: $($_.Exception.Message)" "CONFIG"
+            $Global:Config = $null
+        }
+    } else {
+        Write-LogMessage "WARN" "Config file not found: $ConfigFile" "CONFIG"
+        $Global:Config = $null
+    }
 
     # Load all audit modules at script level to ensure global scope
     Write-LogMessage "INFO" "Loading audit modules..." "MAIN"
