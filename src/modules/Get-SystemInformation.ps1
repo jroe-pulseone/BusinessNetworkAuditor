@@ -126,9 +126,34 @@ function Get-SystemInformation {
             Category = "System"
             Item = "Hardware"
             Value = "$($Computer.Manufacturer) $($Computer.Model)"
-            Details = "RAM: $([math]::Round($Computer.TotalPhysicalMemory/1GB, 2))GB, Processors: $($Computer.NumberOfProcessors)"
+            Details = "RAM: $([math]::Round($Computer.TotalPhysicalMemory/1GB, 2))GB"
             RiskLevel = "INFO"
             Recommendation = ""
+        }
+
+        # Processor Details
+        try {
+            $Processors = Get-CimInstance -ClassName Win32_Processor
+            foreach ($Processor in $Processors) {
+                $ProcessorName = $Processor.Name
+                $ProcessorSpeedGHz = [math]::Round($Processor.MaxClockSpeed / 1000, 2)
+                $LogicalProcessors = $Processor.NumberOfLogicalProcessors
+                $PhysicalCores = $Processor.NumberOfCores
+
+                $Results += [PSCustomObject]@{
+                    Category = "System"
+                    Item = "Processor"
+                    Value = $ProcessorName
+                    Details = "Speed: $ProcessorSpeedGHz GHz, Cores: $PhysicalCores, Logical Processors: $LogicalProcessors"
+                    RiskLevel = "INFO"
+                    Recommendation = ""
+                }
+
+                Write-LogMessage "INFO" "Processor: $ProcessorName - $ProcessorSpeedGHz GHz, $PhysicalCores cores" "SYSTEM"
+            }
+        }
+        catch {
+            Write-LogMessage "WARN" "Could not retrieve processor details: $($_.Exception.Message)" "SYSTEM"
         }
         
         # Domain Status with Tenant Info

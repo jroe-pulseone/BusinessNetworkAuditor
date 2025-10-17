@@ -214,9 +214,12 @@ function Get-EventLogAnalysis {
         # Check for Windows Defender events (performance limited)
         try {
             $DefenderEvents = Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Windows Defender/Operational"; StartTime=$AnalysisStartTime} -MaxEvents $MaxEventsPerQuery -ErrorAction SilentlyContinue
-            
+
             if ($DefenderEvents) {
-                $ThreatEvents = $DefenderEvents | Where-Object { $_.Id -in @(1006, 1007, 1008, 1009, 1116, 1117) }
+                # Only count actual threat detections, not historical management events
+                # 1116 = Malware detected, 1117 = Action taken to protect system
+                # Exclude: 1006 (history changed), 1007 (generic action), 1008 (history deleted), 1009 (restored from quarantine)
+                $ThreatEvents = $DefenderEvents | Where-Object { $_.Id -in @(1116, 1117) }
                 $ScanEvents = $DefenderEvents | Where-Object { $_.Id -in @(1000, 1001, 1002) }
                 
                 # Use dynamic timeframe for display

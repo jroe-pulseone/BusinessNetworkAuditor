@@ -50,8 +50,8 @@ function Get-PrinterAnalysis {
         
         # Get installed printers
         try {
-            $Printers = Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue
-            $PrinterCount = if ($Printers) { $Printers.Count } else { 0 }
+            $Printers = @(Get-CimInstance -ClassName Win32_Printer -ErrorAction SilentlyContinue)
+            $PrinterCount = $Printers.Count
             
             if ($PrinterCount -eq 0) {
                 $Results += [PSCustomObject]@{

@@ -5,293 +5,159 @@ function Get-SecuritySettings {
     <#
     .SYNOPSIS
         Analyzes critical Windows security settings and configurations
-        
+
     .DESCRIPTION
         Performs comprehensive security settings analysis including:
-        - Windows Defender antivirus status and configuration
-        - Third-party antivirus detection via Security Center
+        - Antivirus detection via process signature matching (config-driven)
+        - Windows Defender status and configuration details
         - Windows Firewall profile status (Domain, Private, Public)
         - User Account Control (UAC) configuration
-        - Real-time protection and security service status
-        
+        - BitLocker encryption status and key escrow
+
     .OUTPUTS
         Array of PSCustomObjects with Category, Item, Value, Details, RiskLevel, Recommendation
-        
+
     .NOTES
-        Requires: Write-LogMessage function
+        Requires: Write-LogMessage function, antivirus_signatures in config
         Permissions: Standard user rights for most checks, admin rights for comprehensive analysis
-        Dependencies: Windows Defender, Security Center WMI classes
+        Dependencies: Config file with antivirus process signatures
     #>
     
     Write-LogMessage "INFO" "Analyzing security settings..." "SECURITY"
-    
+
     try {
         $Results = @()
-        
-        # Enhanced Antivirus Detection System
+
+        # Antivirus Detection System
         $DetectedAV = @()
-        $ActiveAV = @()
-        
-        # Function to decode Security Center product state
-        function Get-AVProductState($ProductState) {
-            # Product state is a complex bitmask
-            # Based on research: https://bit.ly/3sKzQbU
-            $State = @{
-                Enabled = ($ProductState -band 0x1000) -ne 0
-                UpToDate = ($ProductState -band 0x10) -eq 0
-                RealTime = ($ProductState -band 0x100) -ne 0
-                StateHex = "0x{0:X}" -f $ProductState
-            }
-            return $State
-        }
-        
-        # Method 1: Windows Defender via PowerShell (most reliable for Defender)
+
+        # Windows Defender - Use direct PowerShell query (built into Windows 10/11)
         try {
             $DefenderStatus = Get-MpComputerStatus -ErrorAction Stop
-            $DefenderInfo = [PSCustomObject]@{
-                Name = "Windows Defender"
-                Enabled = $DefenderStatus.AntivirusEnabled
-                RealTime = $DefenderStatus.RealTimeProtectionEnabled
-                UpToDate = $DefenderStatus.AntivirusSignatureAge -lt 7
-                LastUpdate = $DefenderStatus.AntivirusSignatureLastUpdated
-                Method = "PowerShell API"
-                ProductState = "N/A"
-            }
-            $DetectedAV += $DefenderInfo
-            if ($DefenderInfo.Enabled) { $ActiveAV += $DefenderInfo }
-            
-            Write-LogMessage "INFO" "Windows Defender: Enabled=$($DefenderInfo.Enabled), RealTime=$($DefenderInfo.RealTime)" "SECURITY"
-        }
-        catch {
-            Write-LogMessage "WARN" "Could not query Windows Defender via PowerShell: $($_.Exception.Message)" "SECURITY"
-        }
-        
-        # Method 2: Security Center WMI (comprehensive for all AV products)
-        $SecurityCenterAVs = @()
-        try {
-            $SecurityCenterAV = Get-CimInstance -Namespace "root\SecurityCenter2" -ClassName "AntiVirusProduct" -ErrorAction Stop
-            
-            # Group by displayName to handle duplicates
-            $GroupedAV = $SecurityCenterAV | Group-Object displayName
-            
-            foreach ($AVGroup in $GroupedAV) {
-                $AV = $AVGroup.Group[0]  # Take first instance of each unique product
-                $State = Get-AVProductState -ProductState $AV.productState
-                
-                $AVInfo = [PSCustomObject]@{
-                    Name = $AV.displayName
-                    Enabled = $State.Enabled
-                    RealTime = $State.RealTime
-                    UpToDate = $State.UpToDate
-                    ProductState = $State.StateHex
-                    ExecutablePath = $AV.pathToSignedProductExe
-                    Method = "Security Center"
-                    InstanceGuid = $AV.instanceGuid
-                    InstanceCount = $AVGroup.Count
-                }
-                
-                $SecurityCenterAVs += $AVInfo
-                
-                # Avoid duplicate Defender entries
-                if ($AV.displayName -notlike "*Windows Defender*" -or $DetectedAV.Count -eq 0) {
-                    $DetectedAV += $AVInfo
-                    if ($State.Enabled) { $ActiveAV += $AVInfo }
-                }
-            }
-            
-            # Log unique Security Center products only
-            if ($SecurityCenterAVs.Count -gt 0) {
-                Write-LogMessage "INFO" "Security Center detected $($SecurityCenterAVs.Count) unique AV products:" "SECURITY"
-                foreach ($AV in $SecurityCenterAVs) {
-                    $InstanceText = if ($AV.InstanceCount -gt 1) { " ($($AV.InstanceCount) instances)" } else { "" }
-                    Write-LogMessage "INFO" "  - $($AV.Name): Enabled=$($AV.Enabled), State=$($AV.ProductState)$InstanceText" "SECURITY"
+            if ($DefenderStatus.AntivirusEnabled) {
+                Write-LogMessage "INFO" "Windows Defender detected: RealTime=$($DefenderStatus.RealTimeProtectionEnabled), Signatures=$($DefenderStatus.AntivirusSignatureAge) days old" "SECURITY"
+
+                $DetectedAV += [PSCustomObject]@{
+                    Name = "Windows Defender"
+                    DetectionMethod = "Get-MpComputerStatus"
+                    RealTimeProtection = $DefenderStatus.RealTimeProtectionEnabled
+                    SignatureAge = $DefenderStatus.AntivirusSignatureAge
+                    LastUpdate = $DefenderStatus.AntivirusSignatureLastUpdated
                 }
             }
         }
         catch {
-            Write-LogMessage "WARN" "Could not query Security Center WMI: $($_.Exception.Message)" "SECURITY"
+            Write-LogMessage "DEBUG" "Get-MpComputerStatus not available or Defender not installed: $($_.Exception.Message)" "SECURITY"
         }
-        
-        # Method 3: Process detection as supplemental verification only
-        # Only run if Security Center found limited results or to validate findings
-        $RunProcessDetection = $SecurityCenterAVs.Count -eq 0 -or $SecurityCenterAVs.Count -eq 1
-        
-        if ($RunProcessDetection) {
-            Write-LogMessage "INFO" "Running supplemental process-based AV detection..." "SECURITY"
-            
-            $AVProcessSignatures = @{
-                # Enterprise EDR/AV Solutions
-                "SentinelOne" = @("SentinelAgent", "SentinelRemediation", "SentinelCtl")
-                "CrowdStrike" = @("CSAgent", "CSFalconService", "CSFalconContainer")
-                "CarbonBlack" = @("cb", "CarbonBlack", "RepMgr", "RepUtils", "RepUx")
-                "Cortex XDR" = @("cytool", "cyserver", "CyveraService")
-                
-                # Traditional AV Solutions  
-                "McAfee" = @("mcshield", "mfemms", "mfevtps", "McCSPServiceHost", "masvc")
-                "Symantec/Norton" = @("ccSvcHst", "NortonSecurity", "navapsvc", "rtvscan", "savroam")
-                "Trend Micro" = @("tmbmsrv", "tmproxy", "tmlisten", "PccNTMon", "TmListen")
-                "Kaspersky" = @("avp", "avpui", "klnagent", "ksde", "kavfs")
-                "Bitdefender" = @("bdagent", "vsservppl", "vsserv", "updatesrv", "bdredline")
-                "ESET" = @("epag", "epwd", "ekrn", "egui", "efsw")
-                "Sophos" = @("SophosAgent", "savservice", "SophosFS", "SophosHealth")
-                "F-Secure" = @("fsm32", "fsgk32", "fsav32", "fshoster", "FSMA")
-                "Avast" = @("avastui", "avastsvc", "avastbrowser", "wsc_proxy")
-                "AVG" = @("avguard", "avgui", "avgrsa", "avgfws", "avgcsrvx")
-                "Webroot" = @("WRSA", "WRData", "WRCore", "WRConsumerService")
-                "Malwarebytes" = @("mbamservice", "mbamtray", "MBAMProtector", "mbae64")
-            }
-            
-            try {
+
+        # Third-party AV detection via process matching from config
+        if (Get-Variable -Name "Config" -Scope Global -ErrorAction SilentlyContinue) {
+            if ($Global:Config.settings -and $Global:Config.settings.antivirus_signatures) {
+                $ConfigSigs = $Global:Config.settings.antivirus_signatures
+
+                # Get running processes once for matching
                 $RunningProcesses = Get-Process | Select-Object ProcessName
-                $DetectedByProcess = @()
-                
-                foreach ($AVName in $AVProcessSignatures.Keys) {
-                    $Processes = $AVProcessSignatures[$AVName]
+
+                # Count signatures for logging
+                $SigCount = ($ConfigSigs.PSObject.Properties | Measure-Object).Count
+                Write-LogMessage "INFO" "Checking $SigCount AV signatures from config..." "SECURITY"
+
+                # Iterate through PSCustomObject properties directly (no conversion needed)
+                foreach ($Property in $ConfigSigs.PSObject.Properties) {
+                    $AVName = $Property.Name
+                    $ProcessSignatures = $Property.Value
+
+                    # Skip Windows Defender since we detect it directly
+                    if ($AVName -eq "Windows Defender") {
+                        continue
+                    }
+
                     $Found = $false
-                    
-                    foreach ($ProcessPattern in $Processes) {
-                        if ($RunningProcesses | Where-Object { $_.ProcessName -like "*$ProcessPattern*" }) {
+                    foreach ($ProcessPattern in $ProcessSignatures) {
+                        $MatchedProcesses = $RunningProcesses | Where-Object { $_.ProcessName -like "*$ProcessPattern*" }
+                        if ($MatchedProcesses) {
+                            Write-LogMessage "INFO" "Matched process pattern '$ProcessPattern' for $AVName" "SECURITY"
                             $Found = $true
                             break
                         }
                     }
-                    
+
                     if ($Found) {
-                        $DetectedByProcess += $AVName
+                        $DetectedAV += [PSCustomObject]@{
+                            Name = $AVName
+                            DetectionMethod = "Process Signature"
+                            ProcessSignature = $ProcessSignatures -join ", "
+                        }
+
+                        Write-LogMessage "INFO" "Detected third-party AV: $AVName" "SECURITY"
                     }
                 }
-                
-                if ($DetectedByProcess.Count -gt 0) {
-                    Write-LogMessage "INFO" "Process verification found: $($DetectedByProcess -join ', ')" "SECURITY"
-                    
-                    # Report process-detected AV that wasn't found via Security Center
-                    foreach ($ProcessAV in $DetectedByProcess) {
-                        $AlreadyDetected = $DetectedAV | Where-Object { $_.Name -like "*$ProcessAV*" }
-                        if (-not $AlreadyDetected) {
-                            $Results += [PSCustomObject]@{
-                                Category = "Security"
-                                Item = "Antivirus Process Detected"
-                                Value = "$ProcessAV - Process Running"
-                                Details = "AV processes detected but not registered with Security Center. May indicate configuration issue or secondary AV installation."
-                                RiskLevel = "MEDIUM"
-                                Recommendation = "Verify antivirus registration and avoid conflicting AV products"
-                            }
-                            
-                            Write-LogMessage "WARN" "AV process detected but not in Security Center: $ProcessAV" "SECURITY"
+            }
+        }
+
+        # Generate results from detected AV products
+        if ($DetectedAV.Count -gt 0) {
+            foreach ($AV in $DetectedAV) {
+                $Details = "Detected via $($AV.DetectionMethod)"
+                $RiskLevel = "LOW"
+
+                # Windows Defender specific details
+                if ($AV.Name -eq "Windows Defender") {
+                    if ($AV.RealTimeProtection -ne $null) {
+                        $Details += ", Real-time protection: $($AV.RealTimeProtection)"
+                        if (-not $AV.RealTimeProtection) {
+                            $RiskLevel = "HIGH"
                         }
                     }
-                } else {
-                    Write-LogMessage "INFO" "Process verification: No additional AV products found" "SECURITY"
-                }
-            }
-            catch {
-                Write-LogMessage "WARN" "Could not run process verification: $($_.Exception.Message)" "SECURITY"
-            }
-        } else {
-            Write-LogMessage "INFO" "Skipping process detection - Security Center found sufficient AV products ($($SecurityCenterAVs.Count))" "SECURITY"
-        }
-        
-        # Generate consolidated results with enhanced multiple AV reporting
-        if ($DetectedAV.Count -gt 0) {
-            # Group by product name to handle multiple instances cleanly
-            $GroupedDetectedAV = $DetectedAV | Group-Object Name
-            
-            foreach ($AVGroup in $GroupedDetectedAV) {
-                $AV = $AVGroup.Group[0]  # Take primary instance for display
-                $InstanceCount = $AVGroup.Count
-                
-                $StatusText = if ($AV.Enabled) { "Active" } else { "Installed but Inactive" }
-                $UpdateStatus = if ($AV.UpToDate) { "Up to date" } else { "Outdated signatures" }
-                
-                $Details = "Status: $StatusText"
-                if ($AV.RealTime -ne $null) { $Details += ", Real-time: $($AV.RealTime)" }
-                if ($AV.UpToDate -ne $null) { $Details += ", $UpdateStatus" }
-                if ($AV.LastUpdate) { $Details += ", Last update: $($AV.LastUpdate)" }
-                if ($AV.ProductState -ne "N/A") { $Details += " (State: $($AV.ProductState))" }
-                if ($InstanceCount -gt 1) { $Details += ", Multiple instances detected: $InstanceCount" }
-                
-                $RiskLevel = "LOW"
-                $Recommendation = ""
-                
-                if (-not $AV.Enabled) {
-                    # Check if this is Windows Defender and other AV products are active
-                    if ($AV.Name -match "Windows Defender" -and $ActiveAV.Count -gt 0) {
-                        $RiskLevel = "LOW" 
-                        $Recommendation = "Windows Defender properly disabled - other active AV products detected"
-                    } else {
-                        $RiskLevel = "HIGH"
-                        $Recommendation = "Antivirus must be enabled and active"
+                    if ($AV.SignatureAge -ne $null) {
+                        $Details += ", Signature age: $($AV.SignatureAge) days"
+                        if ($AV.SignatureAge -gt 7) {
+                            $RiskLevel = "MEDIUM"
+                        }
                     }
-                } elseif ($AV.UpToDate -eq $false) {
-                    $RiskLevel = "MEDIUM"
-                    $Recommendation = "Antivirus signatures must be current"
-                } elseif ($InstanceCount -gt 1) {
-                    $RiskLevel = "MEDIUM"
-                    $Recommendation = "Multiple instances may indicate conflicting installations"
+                    if ($AV.LastUpdate) {
+                        $Details += ", Last update: $($AV.LastUpdate)"
+                    }
                 }
-                
-                $DisplayName = if ($InstanceCount -gt 1) { "$($AV.Name) (x$InstanceCount)" } else { $AV.Name }
-                
+
                 $Results += [PSCustomObject]@{
                     Category = "Security"
                     Item = "Antivirus Product"
-                    Value = "$DisplayName - $StatusText"
+                    Value = "$($AV.Name) - Active"
                     Details = $Details
                     RiskLevel = $RiskLevel
                     Recommendation = ""
                 }
             }
-            
-            # Enhanced summary with multiple product analysis
-            $UniqueActiveProducts = ($ActiveAV | Group-Object Name).Count
-            $UniqueDetectedProducts = $GroupedDetectedAV.Count
-            $TotalInstances = $DetectedAV.Count
-            
-            $ActiveProductNames = ($ActiveAV | Group-Object Name | Select-Object -ExpandProperty Name) -join ', '
-            $AllProductNames = ($GroupedDetectedAV | Select-Object -ExpandProperty Name) -join ', '
-            
-            $SummaryDetails = "Active products: $ActiveProductNames"
-            if ($TotalInstances -gt $UniqueDetectedProducts) {
-                $SummaryDetails += ". Multiple instances detected ($TotalInstances total installations of $UniqueDetectedProducts products)"
-            }
-            
-            $SummaryRisk = "LOW"
-            $SummaryRecommendation = ""
-            
-            if ($UniqueActiveProducts -eq 0) {
-                $SummaryRisk = "HIGH"
-                $SummaryRecommendation = "No active antivirus protection"
-            } elseif ($UniqueActiveProducts -gt 1) {
-                $SummaryRisk = "MEDIUM"
-                $SummaryRecommendation = "Multiple active AV products may cause conflicts - review configuration"
-            } elseif ($TotalInstances -gt $UniqueDetectedProducts) {
-                $SummaryRisk = "MEDIUM"
-                $SummaryRecommendation = "Multiple instances of same products detected - review for cleanup"
-            }
-            
+
+            # Summary
+            $DetectedNames = ($DetectedAV | Select-Object -ExpandProperty Name) -join ', '
+            $SummaryRisk = if ($DetectedAV.Count -gt 1) { "MEDIUM" } else { "LOW" }
+            $SummaryRecommendation = if ($DetectedAV.Count -gt 1) { "Multiple AV products may cause conflicts - review configuration" } else { "" }
+
             $Results += [PSCustomObject]@{
                 Category = "Security"
                 Item = "Antivirus Protection Summary"
-                Value = "$UniqueActiveProducts active of $UniqueDetectedProducts products"
-                Details = $SummaryDetails
+                Value = "$($DetectedAV.Count) product(s) detected"
+                Details = "Active products: $DetectedNames"
                 RiskLevel = $SummaryRisk
-                Recommendation = ""
+                Recommendation = $SummaryRecommendation
             }
-            
-            Write-LogMessage "SUCCESS" "Enhanced AV detection: $UniqueActiveProducts unique active products, $UniqueDetectedProducts total products, $TotalInstances instances" "SECURITY"
+
+            Write-LogMessage "SUCCESS" "AV detection: $($DetectedAV.Count) product(s) - $DetectedNames" "SECURITY"
         } else {
             $Results += [PSCustomObject]@{
                 Category = "Security"
                 Item = "Antivirus Protection"
                 Value = "None detected"
-                Details = "No antivirus software detected via Security Center, Defender API, or process analysis"
+                Details = "No antivirus processes detected. Either no AV is installed or signatures need updating."
                 RiskLevel = "HIGH"
-                Recommendation = "Antivirus protection required"
+                Recommendation = "Install and configure antivirus protection"
             }
-            
-            Write-LogMessage "ERROR" "No antivirus protection detected by enhanced detection methods" "SECURITY"
+
+            Write-LogMessage "WARN" "No antivirus products detected" "SECURITY"
         }
-        
+
         # Add detected AV products to raw data collection
         Add-RawDataCollection -CollectionName "AntivirusProducts" -Data $DetectedAV
         

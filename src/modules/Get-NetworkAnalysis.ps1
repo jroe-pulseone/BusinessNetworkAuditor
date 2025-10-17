@@ -26,15 +26,19 @@ function Get-NetworkAnalysis {
         
         # Get network adapters
         try {
-            $NetworkAdapters = Get-CimInstance -ClassName Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -ne $null }
-            $ActiveAdapters = $NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 2 }
-            $DisconnectedAdapters = $NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 7 }
-            
+            $NetworkAdapters = @(Get-CimInstance -ClassName Win32_NetworkAdapter | Where-Object { $_.NetConnectionStatus -ne $null })
+            $ActiveAdapters = @($NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 2 })
+            $DisconnectedAdapters = @($NetworkAdapters | Where-Object { $_.NetConnectionStatus -eq 7 })
+
+            $ActiveCount = $ActiveAdapters.Count
+            $DisconnectedCount = $DisconnectedAdapters.Count
+            $TotalCount = $NetworkAdapters.Count
+
             $Results += [PSCustomObject]@{
                 Category = "Network"
                 Item = "Network Adapters"
-                Value = "$($ActiveAdapters.Count) active, $($DisconnectedAdapters.Count) disconnected"
-                Details = "Total adapters: $($NetworkAdapters.Count)"
+                Value = "$ActiveCount active, $DisconnectedCount disconnected"
+                Details = "Total adapters: $TotalCount"
                 RiskLevel = "INFO"
                 Recommendation = ""
             }
@@ -56,9 +60,7 @@ function Get-NetworkAnalysis {
                 
                 Write-LogMessage "INFO" "Active adapter: $ConnectionName - $Speed" "NETWORK"
             }
-            
-            $ActiveCount = if ($ActiveAdapters) { $ActiveAdapters.Count } else { 0 }
-            $TotalCount = if ($NetworkAdapters) { $NetworkAdapters.Count } else { 0 }
+
             Write-LogMessage "INFO" "Network adapters: $ActiveCount active, $TotalCount total" "NETWORK"
         }
         catch {

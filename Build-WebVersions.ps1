@@ -198,6 +198,11 @@ if (-not (Test-Path `$Script:OutputPath)) {
             continue
         }
 
+        # Skip OutputPath assignment (web version handles this in header with null safety)
+        if ($Line -match "^\s*\`$Script:OutputPath\s*=\s*\`$OutputPath") {
+            continue
+        }
+
         # Skip core module loading block (dot-source imports of core modules) - only at script level, not in functions
         if ($Line -match "^\s*#\s*Load core modules at script level") {
             $InModuleLoadBlock = $true
@@ -221,8 +226,23 @@ if (-not (Test-Path `$Script:OutputPath)) {
             }
         }
 
-        # Don't filter config loading - we removed those sections from the refactored version
-        # The functions handle config internally and don't need external file loading
+        # Skip config loading block in Start-ModularAudit (web version uses embedded config parsed at startup)
+        if ($Line -match "^\s*#\s*Load configuration for export") {
+            $InConfigLoadBlock = $true
+            continue
+        }
+        if ($InConfigLoadBlock) {
+            # End when we hit "Export results" comment or Export-AuditResults call
+            if ($Line -match "^\s*#\s*Export results" -or $Line -match "^\s*Export-AuditResults") {
+                $InConfigLoadBlock = $false
+                # Replace the entire config loading block with a single comment
+                $WebScript += "        # Configuration already loaded from embedded config`n"
+                $WebScript += "        `n"
+                $WebScript += $Line + "`n"
+                continue
+            }
+            continue
+        }
 
         # Skip audit module file loading block (the foreach that loads from .\src\modules) - only at script level
         if ($Line -match "^\s*#\s*Load all audit modules at script level") {

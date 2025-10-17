@@ -22,7 +22,7 @@ function Get-DiskSpaceAnalysis {
     
     try {
         $Results = @()
-        $Drives = Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 }
+        $Drives = @(Get-CimInstance -ClassName Win32_LogicalDisk | Where-Object { $_.DriveType -eq 3 })
         
         foreach ($Drive in $Drives) {
             $DriveLetter = $Drive.DeviceID
@@ -81,7 +81,7 @@ function Get-DiskSpaceAnalysis {
             Write-LogMessage "WARN" "Could not retrieve disk health information: $($_.Exception.Message)" "DISK"
         }
         
-        $DriveCount = if ($Drives) { $Drives.Count } else { 0 }
+        $DriveCount = $Drives.Count
         Write-LogMessage "SUCCESS" "Disk space analysis completed - $DriveCount drives analyzed" "DISK"
         return $Results
     }
