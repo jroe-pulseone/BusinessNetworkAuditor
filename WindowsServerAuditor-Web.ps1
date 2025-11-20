@@ -3,7 +3,7 @@
 # Platform: Windows 10/11, Windows Server 2008-2022+
 # Requires: PowerShell 5.0+
 # Usage: [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm https://your-url/WindowsServerAuditor-Web.ps1)
-# Built: 2025-11-19 18:00:15
+# Built: 2025-11-19 18:08:55
 # Modules: 27 embedded modules in dependency order
 
 param(
@@ -8437,30 +8437,6 @@ try {
 
     # Configuration already loaded from embedded config
     
-    # Load all audit modules at script level to ensure global scope
-    Write-LogMessage "INFO" "Loading audit modules..." "MAIN"
-    $AuditModuleFiles = @(
-        # Core system analysis (reused from workstation)
-        "Get-SystemInformation", "Get-MemoryAnalysis", "Get-DiskSpaceAnalysis",
-        "Get-PatchStatus", "Get-ProcessAnalysis", "Get-SoftwareInventory",
-        "Get-SecuritySettings", "Get-NetworkAnalysis", "Get-EventLogAnalysis",
-        "Get-UserAccountAnalysis",
-
-        # Server-specific modules
-        "Get-ServerRoleAnalysis", "Get-DHCPAnalysis", "Get-DNSAnalysis",
-        "Get-FileShareAnalysis", "Get-ActiveDirectoryAnalysis"
-    )
-
-    foreach ($ModuleName in $AuditModuleFiles) {
-        $ModuleFile = ".\src\modules\$ModuleName.ps1"
-        if (Test-Path $ModuleFile) {
-            . $ModuleFile
-            Write-LogMessage "SUCCESS" "Loaded module: $ModuleName" "MODULE"
-        } else {
-            Write-LogMessage "WARN" "Module file not found: $ModuleFile" "MODULE"
-        }
-    }
-
     # Start the audit
     $AuditResults = Start-ServerAudit
     Write-LogMessage "SUCCESS" "Windows Server Auditor completed successfully" "MAIN"

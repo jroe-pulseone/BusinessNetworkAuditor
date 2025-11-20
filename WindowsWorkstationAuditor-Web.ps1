@@ -3,7 +3,7 @@
 # Platform: Windows 10/11
 # Requires: PowerShell 5.0+
 # Usage: [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm https://your-url/WindowsWorkstationAuditor-Web.ps1)
-# Built: 2025-11-19 18:00:15
+# Built: 2025-11-19 18:07:14
 # Modules: 27 embedded modules in dependency order
 
 param(

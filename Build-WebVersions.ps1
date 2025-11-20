@@ -279,9 +279,9 @@ if (-not (Test-Path `$Script:OutputPath)) {
                 $ReplacementLine = "        # Configuration already loaded from embedded config`n        `n" + $Line + "`n"
             }
             elseif ($InConfigLoadBlock -eq 3 -and $Line -match "^\s*#\s*Load all audit modules at script level") {
-                # Block 3 ends at "Load all audit modules"
+                # Block 3 ends at module loading comment
                 $ShouldEnd = $true
-                $ReplacementLine = "    # Configuration already loaded from embedded config`n    `n" + $Line + "`n"
+                $ReplacementLine = "    # Configuration already loaded from embedded config`n    `n"
             }
 
             if ($ShouldEnd) {
@@ -293,7 +293,8 @@ if (-not (Test-Path `$Script:OutputPath)) {
         }
 
         # Skip audit module file loading block (the foreach that loads from .\src\modules) - only at script level
-        if ($Line -match "^\s*#\s*Load all audit modules at script level") {
+        if ($Line -match "^\s*#\s*Load all audit modules at script level" -or
+            ($Line -match '^\s*Write-LogMessage\s+"INFO"\s+"Loading audit modules' -and -not $InConfigLoadBlock)) {
             $InModuleLoadBlock = 2  # Use different value to avoid conflict
             continue
         }
