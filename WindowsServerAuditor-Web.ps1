@@ -3,7 +3,7 @@
 # Platform: Windows 10/11, Windows Server 2008-2022+
 # Requires: PowerShell 5.0+
 # Usage: [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm https://your-url/WindowsServerAuditor-Web.ps1)
-# Built: 2025-11-11 12:28:07
+# Built: 2025-11-19 18:00:15
 # Modules: 27 embedded modules in dependency order
 
 param(
@@ -8009,8 +8009,8 @@ function Invoke-SubscriptionFreeCheck {
 
 # Parse embedded configuration
 try {
-    $Config = $Script:EmbeddedConfig | ConvertFrom-Json
-    Write-Host "Loaded embedded configuration (version: $($Config.version))" -ForegroundColor Green
+    $Global:Config = $Script:EmbeddedConfig | ConvertFrom-Json
+    Write-Host "Loaded embedded configuration (version: $($Global:Config.version))" -ForegroundColor Green
 } catch {
     Write-Host "ERROR: Failed to parse embedded configuration: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
@@ -8095,22 +8095,8 @@ function Import-AuditModules {
         allowing for selective module execution.
     #>
 
-    # Load configuration
-    $ConfigFile = Join-Path $ConfigPath "server-audit-config.json"
-    if (Test-Path $ConfigFile) {
-        try {
-            $Config = Get-Content $ConfigFile | ConvertFrom-Json
-            Write-LogMessage "SUCCESS" "Loaded configuration from: $ConfigFile" "CONFIG"
-        }
-        catch {
-            Write-LogMessage "WARN" "Failed to load config, using defaults: $($_.Exception.Message)" "CONFIG"
-            $Config = $null
-        }
-    } else {
-        Write-LogMessage "WARN" "Config file not found, using defaults: $ConfigFile" "CONFIG"
-        $Config = $null
-    }
-
+    # Configuration already loaded from embedded config
+    
     # Define available audit modules for servers
     $AuditModules = @(
         # Core system analysis (reused from workstation)
@@ -8449,20 +8435,30 @@ try {
     Write-LogMessage "INFO" "OS: $($OSInfo.Caption) $($OSInfo.Version)" "MAIN"
     Write-LogMessage "INFO" "Output directory: $OutputPath" "MAIN"
 
-    # Load configuration as global variable for modules to access
-    $ConfigFile = Join-Path $ConfigPath "server-audit-config.json"
-    if (Test-Path $ConfigFile) {
-        try {
-            $Global:Config = Get-Content $ConfigFile | ConvertFrom-Json
-            Write-LogMessage "SUCCESS" "Loaded configuration as global: $ConfigFile" "CONFIG"
+    # Configuration already loaded from embedded config
+    
+    # Load all audit modules at script level to ensure global scope
+    Write-LogMessage "INFO" "Loading audit modules..." "MAIN"
+    $AuditModuleFiles = @(
+        # Core system analysis (reused from workstation)
+        "Get-SystemInformation", "Get-MemoryAnalysis", "Get-DiskSpaceAnalysis",
+        "Get-PatchStatus", "Get-ProcessAnalysis", "Get-SoftwareInventory",
+        "Get-SecuritySettings", "Get-NetworkAnalysis", "Get-EventLogAnalysis",
+        "Get-UserAccountAnalysis",
+
+        # Server-specific modules
+        "Get-ServerRoleAnalysis", "Get-DHCPAnalysis", "Get-DNSAnalysis",
+        "Get-FileShareAnalysis", "Get-ActiveDirectoryAnalysis"
+    )
+
+    foreach ($ModuleName in $AuditModuleFiles) {
+        $ModuleFile = ".\src\modules\$ModuleName.ps1"
+        if (Test-Path $ModuleFile) {
+            . $ModuleFile
+            Write-LogMessage "SUCCESS" "Loaded module: $ModuleName" "MODULE"
+        } else {
+            Write-LogMessage "WARN" "Module file not found: $ModuleFile" "MODULE"
         }
-        catch {
-            Write-LogMessage "WARN" "Failed to load config: $($_.Exception.Message)" "CONFIG"
-            $Global:Config = $null
-        }
-    } else {
-        Write-LogMessage "WARN" "Config file not found: $ConfigFile" "CONFIG"
-        $Global:Config = $null
     }
 
     # Start the audit

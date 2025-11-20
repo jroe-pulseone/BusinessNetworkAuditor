@@ -184,8 +184,8 @@ if (-not (Test-Path `$Script:OutputPath)) {
     $WebScript += "`n# === MAIN SCRIPT LOGIC ===`n"
     $WebScript += "`n# Parse embedded configuration`n"
     $WebScript += "try {`n"
-    $WebScript += "    `$Config = `$Script:EmbeddedConfig | ConvertFrom-Json`n"
-    $WebScript += "    Write-Host `"Loaded embedded configuration (version: `$(`$Config.version))`" -ForegroundColor Green`n"
+    $WebScript += "    `$Global:Config = `$Script:EmbeddedConfig | ConvertFrom-Json`n"
+    $WebScript += "    Write-Host `"Loaded embedded configuration (version: `$(`$Global:Config.version))`" -ForegroundColor Green`n"
     $WebScript += "} catch {`n"
     $WebScript += "    Write-Host `"ERROR: Failed to parse embedded configuration: `$(`$_.Exception.Message)`" -ForegroundColor Red`n"
     $WebScript += "    exit 1`n"
@@ -246,19 +246,47 @@ if (-not (Test-Path `$Script:OutputPath)) {
             }
         }
 
-        # Skip config loading block in Start-ModularAudit (web version uses embedded config parsed at startup)
-        if ($Line -match "^\s*#\s*Load configuration for export") {
-            $InConfigLoadBlock = $true
+        # Skip config loading blocks (web version uses embedded config parsed at startup)
+        # Pattern 1: "# Load configuration" in Import-AuditModules function
+        if ($Line -match "^\s*#\s*Load configuration$") {
+            $InConfigLoadBlock = 1
             continue
         }
+        # Pattern 2: "# Load configuration for export" in Start-ServerAudit/Start-ModularAudit
+        if ($Line -match "^\s*#\s*Load configuration for export") {
+            $InConfigLoadBlock = 2
+            continue
+        }
+        # Pattern 3: "# Load configuration as global variable" in main try block
+        if ($Line -match "^\s*#\s*Load configuration as global variable") {
+            $InConfigLoadBlock = 3
+            continue
+        }
+
         if ($InConfigLoadBlock) {
-            # End when we hit "Export results" comment or Export-AuditResults call
-            if ($Line -match "^\s*#\s*Export results" -or $Line -match "^\s*Export-AuditResults") {
+            # Different ending conditions for each block
+            $ShouldEnd = $false
+            $ReplacementLine = ""
+
+            if ($InConfigLoadBlock -eq 1 -and $Line -match "^\s*#\s*Define available audit modules") {
+                # Block 1 ends at "Define available audit modules"
+                $ShouldEnd = $true
+                $ReplacementLine = "    # Configuration already loaded from embedded config`n    `n" + $Line + "`n"
+            }
+            elseif ($InConfigLoadBlock -eq 2 -and ($Line -match "^\s*#\s*Export results" -or $Line -match "^\s*Export-AuditResults")) {
+                # Block 2 ends at "Export results"
+                $ShouldEnd = $true
+                $ReplacementLine = "        # Configuration already loaded from embedded config`n        `n" + $Line + "`n"
+            }
+            elseif ($InConfigLoadBlock -eq 3 -and $Line -match "^\s*#\s*Load all audit modules at script level") {
+                # Block 3 ends at "Load all audit modules"
+                $ShouldEnd = $true
+                $ReplacementLine = "    # Configuration already loaded from embedded config`n    `n" + $Line + "`n"
+            }
+
+            if ($ShouldEnd) {
                 $InConfigLoadBlock = $false
-                # Replace the entire config loading block with a single comment
-                $WebScript += "        # Configuration already loaded from embedded config`n"
-                $WebScript += "        `n"
-                $WebScript += $Line + "`n"
+                $WebScript += $ReplacementLine
                 continue
             }
             continue
